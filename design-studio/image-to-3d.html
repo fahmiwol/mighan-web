@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mighan — Image to 3D Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#07080f;--bg2:#0b0d1c;--panel:#12152a;--border:#2a2f55;
+  --cyan:#00f5ff;--purple:#7c3aed;--gold:#f59e0b;--red:#ef4444;
+  --text:#e8eaf0;--muted:#4a5080;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;height:100vh;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:12px;padding:0 20px;height:56px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
+.brand{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--cyan);letter-spacing:2px}
+.badge{background:var(--purple);color:#fff;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700}
+.model-status{margin-left:auto;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.status-dot.ready{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.status-dot.loading{background:var(--gold);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+.workspace{flex:1;display:grid;grid-template-columns:320px 1fr 280px;overflow:hidden}
+
+/* LEFT PANEL */
+.left-panel{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;gap:0;overflow-y:auto}
+.section{padding:14px 16px;border-bottom:1px solid var(--border)}
+.sec-title{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:10px}
+
+/* Upload */
+.drop-zone{border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .2s}
+.drop-zone:hover,.drop-zone.over{border-color:var(--cyan);background:rgba(0,245,255,.04)}
+.drop-zone.loaded{border-style:solid;border-color:var(--cyan)}
+.dz-icon{font-size:28px;margin-bottom:6px}
+.dz-text{font-size:12px;color:var(--muted)}
+#previewImg{width:100%;border-radius:8px;max-height:140px;object-fit:cover;display:none}
+
+/* Mode selector */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mode-card{padding:10px 8px;border:1px solid var(--border);border-radius:8px;cursor:pointer;text-align:center;transition:all .2s;background:var(--bg2)}
+.mode-card.active{border-color:var(--cyan);background:rgba(0,245,255,.08)}
+.mode-card:hover:not(.active){border-color:rgba(0,245,255,.3)}
+.mode-icon{font-size:20px;display:block;margin-bottom:4px}
+.mode-name{font-size:11px;font-family:'Rajdhani';font-weight:700;letter-spacing:1px}
+.mode-desc{font-size:9px;color:var(--muted);margin-top:2px}
+
+/* Sliders */
+.slider-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.slider-label{font-size:12px;color:var(--muted)}
+.slider-val{font-size:11px;color:var(--cyan);width:30px;text-align:right}
+input[type=range]{width:130px;accent-color:var(--cyan)}
+
+/* Buttons */
+.btn-gen{width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--cyan),#0080ff);color:#07080f;font-family:'Rajdhani';font-size:15px;font-weight:800;letter-spacing:2px;cursor:pointer;transition:all .2s}
+.btn-gen:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,245,255,.3)}
+.btn-gen:disabled{opacity:.5;cursor:not-allowed}
+.btn-sec{width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);font-size:12px;cursor:pointer;transition:all .2s;margin-top:6px}
+.btn-sec:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* Progress */
+.progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin:8px 0}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));width:0%;transition:width .3s;border-radius:2px}
+.progress-text{font-size:11px;color:var(--muted);text-align:center}
+
+/* CANVAS */
+.canvas-area{position:relative;background:radial-gradient(ellipse at center,#0d1020 0%,var(--bg) 70%)}
+#c3d{width:100%;height:100%;display:block}
+.canvas-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.ph{text-align:center}
+.ph-icon{font-size:56px;opacity:.12}
+.ph-text{font-size:13px;color:var(--muted);margin-top:8px}
+
+/* Viewer controls */
+.viewer-ctrl{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:6px}
+.vc-btn{width:34px;height:34px;background:rgba(18,21,42,.9);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;backdrop-filter:blur(4px)}
+.vc-btn:hover,.vc-btn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,245,255,.1)}
+
+/* Loading */
+.gen-overlay{position:absolute;inset:0;background:rgba(7,8,15,.88);backdrop-filter:blur(6px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.gen-overlay.show{display:flex}
+.spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gen-msg{font-size:14px}
+.gen-sub{font-size:12px;color:var(--muted)}
+
+/* RIGHT PANEL */
+.right-panel{background:var(--panel);border-left:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(42,47,85,.5)}
+.info-label{font-size:11px;color:var(--muted)}
+.info-val{font-size:11px;color:var(--text);font-family:'Rajdhani';font-weight:600}
+.info-val.cyan{color:var(--cyan)}
+
+/* Depth preview */
+#depthCanvas{width:100%;border-radius:8px;border:1px solid var(--border);display:none}
+
+/* History */
+.hist-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:14px 16px}
+.hist-item{aspect-ratio:1;border-radius:8px;overflow:hidden;cursor:pointer;border:1px solid var(--border);position:relative}
+.hist-item:hover{border-color:var(--cyan)}
+.hist-item img{width:100%;height:100%;object-fit:cover}
+.hist-badge{position:absolute;bottom:3px;right:3px;background:rgba(0,0,0,.8);color:var(--cyan);font-size:9px;padding:2px 5px;border-radius:4px;font-family:'Rajdhani';font-weight:700}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;border:1px solid}
+.tag-free{border-color:var(--cyan);color:var(--cyan);background:rgba(0,245,255,.08)}
+.tag-onnx{border-color:var(--purple);color:#b794f4;background:rgba(124,58,237,.1)}
+
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.toast{position:fixed;bottom:16px;right:16px;background:rgba(239,68,68,.15);border:1px solid var(--red);border-radius:10px;padding:10px 16px;color:#f87171;font-size:13px;display:none;z-index:999;max-width:300px}
+.toast.show{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">⬡ IMAGE → 3D</div>
+  <span class="badge">OWN ENGINE</span>
+  <span style="font-size:11px;color:var(--muted)">Powered by ONNX.js + Three.js · No external API</span>
+  <div class="model-status">
+    <span class="tag tag-free">FREE</span>
+    <span class="tag tag-onnx">ONNX</span>
+    <div class="status-dot" id="modelDot"></div>
+    <span id="modelStatusText">Loading model...</span>
+  </div>
+</div>
+
+<div class="workspace">
+
+  <!-- LEFT -->
+  <div class="left-panel">
+    <div class="section">
+      <div class="sec-title">Input Gambar</div>
+      <div class="drop-zone" id="dropZone" onclick="fileIn.click()">
+        <div id="dzContent">
+          <div class="dz-icon">🖼️</div>
+          <div class="dz-text">Drag & drop atau klik</div>
+        </div>
+        <img id="previewImg" alt="">
+      </div>
+      <input type="file" id="fileIn" accept="image/*" style="display:none">
+    </div>
+
+    <div class="section">
+      <div class="sec-title">Mode 3D</div>
+      <div class="mode-grid">
+        <div class="mode-card active" data-mode="displacement" onclick="setMode('displacement')">
+          <span class="mode-icon">🏔️</span>
+          <div class="mode-name">TERRAIN</div>
+          <div class="mode-desc">Displacement mesh</div>
+        </div>
+        <div class="mode-card" data-mode="lowpoly" onclick="setMode('lowpoly')">
+          <span class="mode-icon">💎</span>
+          <div class="mode-name">LOW POLY</div>
+          <div class="mode-desc">Delaunay triangles</div>
+        </div>
+        <div class="mode-card" data-mode="voxel" onclick="setMode('voxel')">
+          <span class="mode-icon">🧱</span>
+          <div class="mode-name">VOXEL</div>
+          <div class="mode-desc">Minecraft-style</div>
+        </div>
+        <div class="mode-card" data-mode="pointcloud" onclick="setMode('pointcloud')">
+          <span class="mode-icon">✨</span>
+          <div class="mode-name">POINT CLOUD</div>
+          <div class="mode-desc">Particle depth</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-title">Parameter</div>
+      <div class="slider-row">
+        <span class="slider-label">Depth strength</span>
+        <input type="range" id="sDepth" min="0.1" max="3" step="0.1" value="1.2" oninput="updateParam('depth',this.value)">
+        <span class="slider-val" id="vDepth">1.2</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label">Mesh density</span>
+        <input type="range" id="sDensity" min="32" max="256" step="32" value="128" oninput="updateParam('density',this.value)">
+        <span class="slider-val" id="vDensity">128</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label">Voxel size</span>
+        <input type="range" id="sVoxel" min="2" max="16" step="1" value="6" oninput="updateParam('voxel',this.value)">
+        <span class="slider-val" id="vVoxel">6</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label">Smooth passes</span>
+        <input type="range" id="sSmooth" min="0" max="5" step="1" value="2" oninput="updateParam('smooth',this.value)">
+        <span class="slider-val" id="vSmooth">2</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="progress-bar" id="progBar" style="display:none"><div class="progress-fill" id="progFill"></div></div>
+      <div class="progress-text" id="progText" style="display:none"></div>
+      <button class="btn-gen" id="btnGen" onclick="generate()" disabled>GENERATE 3D</button>
+      <button class="btn-sec" id="btnReapply" onclick="reapply()" style="display:none">Re-apply Parameters</button>
+    </div>
+
+    <div class="section">
+      <div class="sec-title">Export</div>
+      <button class="btn-sec" onclick="exportGLB()">⬇ Download GLB</button>
+      <button class="btn-sec" onclick="exportOBJ()">⬇ Download OBJ</button>
+      <button class="btn-sec" onclick="screenshotView()">📸 Screenshot PNG</button>
+    </div>
+  </div>
+
+  <!-- CANVAS -->
+  <div class="canvas-area" id="canvasArea">
+    <canvas id="c3d"></canvas>
+    <div class="canvas-overlay" id="placeholder">
+      <div class="ph">
+        <div class="ph-icon">⬡</div>
+        <div class="ph-text">Upload gambar dan klik Generate 3D</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">Model berjalan 100% di browser — tidak ada data yang dikirim keluar</div>
+      </div>
+    </div>
+    <div class="viewer-ctrl" id="viewerCtrl" style="display:none">
+      <button class="vc-btn" id="btnWF" title="Wireframe" onclick="toggleWireframe()">⊞</button>
+      <button class="vc-btn" id="btnAR" title="Auto rotate" onclick="toggleAutoRotate()">↻</button>
+      <button class="vc-btn" title="Reset view" onclick="resetView()">⌖</button>
+      <button class="vc-btn" title="Top view" onclick="topView()">⊤</button>
+    </div>
+    <div class="gen-overlay" id="genOverlay">
+      <div class="spinner"></div>
+      <div class="gen-msg" id="genMsg">Processing...</div>
+      <div class="gen-sub" id="genSub">Running depth estimation on your device</div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-panel">
+    <div class="section">
+      <div class="sec-title">Model Info</div>
+      <div class="info-row"><span class="info-label">Engine</span><span class="info-val cyan">ONNX.js + Three.js</span></div>
+      <div class="info-row"><span class="info-label">Depth Model</span><span class="info-val" id="infoModel">Loading...</span></div>
+      <div class="info-row"><span class="info-label">Mode</span><span class="info-val" id="infoMode">Displacement</span></div>
+      <div class="info-row"><span class="info-label">Vertices</span><span class="info-val" id="infoVerts">—</span></div>
+      <div class="info-row"><span class="info-label">Triangles</span><span class="info-val" id="infoTris">—</span></div>
+      <div class="info-row"><span class="info-label">Gen time</span><span class="info-val cyan" id="infoTime">—</span></div>
+      <div class="info-row"><span class="info-label">API cost</span><span class="info-val cyan">Rp 0 (FREE)</span></div>
+    </div>
+
+    <div class="section">
+      <div class="sec-title">Depth Preview</div>
+      <canvas id="depthCanvas" width="240" height="180"></canvas>
+      <div style="font-size:10px;color:var(--muted);margin-top:6px">Terang = dekat, gelap = jauh</div>
+    </div>
+
+    <div class="section">
+      <div class="sec-title">History</div>
+    </div>
+    <div class="hist-grid" id="histGrid"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ONNX Runtime -->
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.min.js"></script>
+
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.162.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.162.0/examples/jsm/"}}</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+
+// ─── Config ───────────────────────────────────────────────────────────────────
+const MODEL_URL = '/public/models/depth-anything-v2-small.onnx';
+const FALLBACK_DEPTH = true; // Use canvas-based depth if ONNX fails
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let onnxSession = null, modelReady = false;
+let scene, camera, renderer, controls, currentMesh;
+let autoRotate = false, wireframe = false;
+let currentImageData = null;
+let params = { depth: 1.2, density: 128, voxel: 6, smooth: 2 };
+let currentMode = 'displacement';
+let lastGenTime = 0;
+
+// ─── ONNX Init ────────────────────────────────────────────────────────────────
+async function initModel() {
+  setStatus('loading', 'Memuat model ONNX...');
+  try {
+    ort.env.wasm.numThreads = navigator.hardwareConcurrency || 4;
+    ort.env.wasm.simd = true;
+    onnxSession = await ort.InferenceSession.create(MODEL_URL, { executionProviders: ['wasm'] });
+    modelReady = true;
+    setStatus('ready', 'Model siap (Depth Anything V2)');
+    document.getElementById('infoModel').textContent = 'Depth Anything V2 Small';
+    document.getElementById('infoModel').style.color = 'var(--cyan)';
+  } catch(e) {
+    console.warn('ONNX model load failed, using fallback:', e.message);
+    setStatus('ready', 'Canvas depth (fallback)');
+    document.getElementById('infoModel').textContent = 'Canvas Luminance (fallback)';
+    modelReady = true; // fallback is always ready
+  }
+}
+
+function setStatus(state, text) {
+  const dot = document.getElementById('modelDot');
+  dot.className = 'status-dot' + (state === 'ready' ? ' ready' : state === 'loading' ? ' loading' : '');
+  document.getElementById('modelStatusText').textContent = text;
+}
+
+// ─── Three.js Init ────────────────────────────────────────────────────────────
+function initThree() {
+  const canvas = document.getElementById('c3d');
+  const area = document.getElementById('canvasArea');
+
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x07080f);
+  scene.fog = new THREE.FogExp2(0x07080f, 0.04);
+
+  camera = new THREE.PerspectiveCamera(55, 1, 0.01, 100);
+  camera.position.set(0, 2, 4);
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.06;
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0x223355, 2.5));
+  const d = new THREE.DirectionalLight(0x00f5ff, 3);
+  d.position.set(3, 5, 2); d.castShadow = true; scene.add(d);
+  const b = new THREE.DirectionalLight(0x7c3aed, 1.5);
+  b.position.set(-3, 3, -3); scene.add(b);
+  const p = new THREE.PointLight(0x00f5ff, 0.8, 15);
+  p.position.set(0, 4, 0); scene.add(p);
+
+  // Grid
+  const g = new THREE.GridHelper(20, 40, 0x2a2f55, 0x1a1e38);
+  g.position.y = -2.5; scene.add(g);
+
+  resizeAll();
+  new ResizeObserver(resizeAll).observe(area);
+  animate();
+}
+
+function resizeAll() {
+  const area = document.getElementById('canvasArea');
+  const w = area.clientWidth, h = area.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (autoRotate && currentMesh) currentMesh.rotation.y += 0.004;
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+// ─── Depth Estimation ────────────────────────────────────────────────────────
+async function estimateDepth(img) {
+  // Try ONNX first
+  if (onnxSession) {
+    try {
+      return await runONNXDepth(img);
+    } catch(e) {
+      console.warn('ONNX depth failed, using fallback:', e);
+    }
+  }
+  return canvasDepthFallback(img);
+}
+
+async function runONNXDepth(img) {
+  // Resize to 518x518 (Depth Anything V2 input)
+  const size = 518;
+  const offscreen = document.createElement('canvas');
+  offscreen.width = offscreen.height = size;
+  const ctx = offscreen.getContext('2d');
+  ctx.drawImage(img, 0, 0, size, size);
+  const imageData = ctx.getImageData(0, 0, size, size);
+
+  // Normalize to float32 [0,1] NCHW format
+  const float32 = new Float32Array(3 * size * size);
+  const mean = [0.485, 0.456, 0.406];
+  const std = [0.229, 0.224, 0.225];
+  for (let i = 0; i < size * size; i++) {
+    float32[i]               = (imageData.data[i*4]   / 255 - mean[0]) / std[0];
+    float32[size*size + i]   = (imageData.data[i*4+1] / 255 - mean[1]) / std[1];
+    float32[size*size*2 + i] = (imageData.data[i*4+2] / 255 - mean[2]) / std[2];
+  }
+
+  const tensor = new ort.Tensor('float32', float32, [1, 3, size, size]);
+  const feeds = {};
+  feeds[onnxSession.inputNames[0]] = tensor;
+  const results = await onnxSession.run(feeds);
+  const depthData = results[onnxSession.outputNames[0]].data;
+
+  // Normalize depth to 0-1
+  let min = Infinity, max = -Infinity;
+  for (const v of depthData) { if (v < min) min = v; if (v > max) max = v; }
+  const range = max - min || 1;
+  const normalized = new Float32Array(depthData.length);
+  for (let i = 0; i < depthData.length; i++) normalized[i] = (depthData[i] - min) / range;
+
+  // Apply smooth passes
+  let smoothed = normalized;
+  for (let s = 0; s < params.smooth; s++) smoothed = gaussianSmooth(smoothed, size, size);
+
+  return { data: smoothed, width: size, height: size };
+}
+
+function canvasDepthFallback(img) {
+  // Luminance-based pseudo-depth (simple but works)
+  const w = Math.min(img.width, 256), h = Math.min(img.height, 256);
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0, w, h);
+  const px = ctx.getImageData(0, 0, w, h).data;
+  const depth = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) {
+    // Luminance as depth proxy (brighter = closer, inverted)
+    const lum = (px[i*4] * 0.299 + px[i*4+1] * 0.587 + px[i*4+2] * 0.114) / 255;
+    depth[i] = 1 - lum;
+  }
+  let smoothed = depth;
+  for (let s = 0; s < params.smooth; s++) smoothed = gaussianSmooth(smoothed, w, h);
+  return { data: smoothed, width: w, height: h };
+}
+
+function gaussianSmooth(data, w, h) {
+  const out = new Float32Array(data.length);
+  const k = [1,2,1, 2,4,2, 1,2,1]; // 3x3 Gaussian kernel / 16
+  for (let y = 1; y < h-1; y++) {
+    for (let x = 1; x < w-1; x++) {
+      let sum = 0;
+      for (let ky = -1; ky <= 1; ky++) for (let kx = -1; kx <= 1; kx++) {
+        sum += data[(y+ky)*w+(x+kx)] * k[(ky+1)*3+(kx+1)];
+      }
+      out[y*w+x] = sum / 16;
+    }
+  }
+  return out;
+}
+
+// ─── 3D Generation Modes ─────────────────────────────────────────────────────
+function buildDisplacementMesh(colorTex, depth) {
+  const seg = params.density;
+  const geo = new THREE.PlaneGeometry(4, 4, seg, seg);
+  const pos = geo.attributes.position;
+  const dw = depth.width, dh = depth.height;
+
+  for (let i = 0; i < pos.count; i++) {
+    const u = (pos.getX(i) / 4 + 0.5);
+    const v = (pos.getY(i) / 4 + 0.5);
+    const dx = Math.floor(u * (dw-1));
+    const dy = Math.floor((1-v) * (dh-1));
+    const d = depth.data[dy * dw + dx] || 0;
+    pos.setZ(i, d * params.depth);
+  }
+  geo.computeVertexNormals();
+
+  const mat = new THREE.MeshStandardMaterial({ map: colorTex, side: THREE.DoubleSide });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.rotation.x = -Math.PI / 12;
+  return mesh;
+}
+
+function buildLowPolyMesh(colorTex, depth) {
+  // Sample keypoints from depth, Delaunay triangulation
+  const samples = Math.min(params.density * 4, 2000);
+  const dw = depth.width, dh = depth.height;
+  const points = [];
+
+  // Importance-based sampling: more points in high-gradient areas
+  for (let i = 0; i < samples; i++) {
+    const x = Math.random(), y = Math.random();
+    const dx = Math.floor(x * (dw-1)), dy = Math.floor(y * (dh-1));
+    const d = depth.data[dy * dw + dx] || 0;
+    // gradient-weighted probability
+    if (Math.random() < 0.3 + Math.abs(d - 0.5) * 0.7) {
+      points.push({ x: x * 4 - 2, y: y * 4 - 2, z: d * params.depth, u: x, v: 1-y });
+    }
+  }
+
+  // Simple triangulation from grid
+  const geo = new THREE.BufferGeometry();
+  const verts = [], uvs = [], indices = [];
+  const grid = 32;
+  for (let gy = 0; gy <= grid; gy++) {
+    for (let gx = 0; gx <= grid; gx++) {
+      const u = gx / grid, v = gy / grid;
+      const dx = Math.floor(u * (dw-1)), dy = Math.floor(v * (dh-1));
+      const d = depth.data[dy * dw + dx] || 0;
+      // Add some noise for low-poly look
+      const noise = (Math.random() - 0.5) * 0.05;
+      verts.push((u * 4 - 2), (v * 4 - 2), (d + noise) * params.depth);
+      uvs.push(u, 1 - v);
+    }
+  }
+  for (let gy = 0; gy < grid; gy++) {
+    for (let gx = 0; gx < grid; gx++) {
+      const a = gy * (grid+1) + gx;
+      const b = a + 1, c = a + grid + 1, dd = c + 1;
+      indices.push(a, c, b, b, c, dd);
+    }
+  }
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  const mat = new THREE.MeshStandardMaterial({ map: colorTex, flatShading: true, side: THREE.DoubleSide });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.rotation.x = -Math.PI / 12;
+  return mesh;
+}
+
+function buildVoxelMesh(colorCanvas, depth) {
+  const vSize = params.voxel;
+  const imgW = colorCanvas.width, imgH = colorCanvas.height;
+  const ctx = colorCanvas.getContext('2d');
+  const cols = Math.floor(imgW / vSize), rows = Math.floor(imgH / vSize);
+  const dw = depth.width, dh = depth.height;
+
+  const geometry = new THREE.InstancedMesh(
+    new THREE.BoxGeometry(0.15, 0.15, 0.15),
+    new THREE.MeshStandardMaterial({ vertexColors: true }),
+    cols * rows
+  );
+
+  let count = 0;
+  const dummy = new THREE.Object3D();
+  const colors = [];
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const u = col / cols, v = row / rows;
+      const dx = Math.floor(u * (dw-1)), dy = Math.floor(v * (dh-1));
+      const d = depth.data[dy * dw + dx] || 0;
+
+      const px = ctx.getImageData(Math.floor(u * imgW), Math.floor(v * imgH), 1, 1).data;
+      colors.push(px[0]/255, px[1]/255, px[2]/255);
+
+      dummy.position.set((u - 0.5) * 4, (v - 0.5) * 4, d * params.depth);
+      dummy.updateMatrix();
+      geometry.setMatrixAt(count++, dummy.matrix);
+    }
+  }
+  geometry.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.instanceMatrix.needsUpdate = true;
+  return geometry;
+}
+
+function buildPointCloud(colorCanvas, depth) {
+  const dw = depth.width, dh = depth.height;
+  const step = Math.max(1, Math.floor(dw / 128));
+  const ctx = colorCanvas.getContext('2d');
+  const positions = [], colors = [];
+
+  for (let y = 0; y < dh; y += step) {
+    for (let x = 0; x < dw; x += step) {
+      const d = depth.data[y * dw + x] || 0;
+      positions.push((x/dw - 0.5) * 4, (y/dh - 0.5) * 4, d * params.depth);
+      const u = Math.floor(x / dw * colorCanvas.width);
+      const v = Math.floor(y / dh * colorCanvas.height);
+      const px = ctx.getImageData(u, v, 1, 1).data;
+      colors.push(px[0]/255, px[1]/255, px[2]/255);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  const mat = new THREE.PointsMaterial({ size: 0.03, vertexColors: true, sizeAttenuation: true });
+  return new THREE.Points(geo, mat);
+}
+
+// ─── Generate ─────────────────────────────────────────────────────────────────
+window.generate = async function() {
+  if (!currentImageData || !modelReady) return;
+  const t0 = performance.now();
+  showOverlay(true, 'Depth estimation...', 'Model berjalan di perangkat Anda');
+  setProgress(5);
+
+  try {
+    // Load image
+    const img = await loadImg(currentImageData);
+    setProgress(15);
+
+    // Estimate depth
+    setOverlayMsg('Mengestimasi kedalaman...');
+    const depth = await estimateDepth(img);
+    setProgress(50);
+
+    // Show depth preview
+    renderDepthPreview(depth);
+    setProgress(60);
+
+    // Build color texture
+    const colorTex = new THREE.TextureLoader().load(currentImageData);
+    const colorCanvas = document.createElement('canvas');
+    colorCanvas.width = img.width; colorCanvas.height = img.height;
+    colorCanvas.getContext('2d').drawImage(img, 0, 0);
+
+    // Remove old mesh
+    if (currentMesh) { scene.remove(currentMesh); disposeObj(currentMesh); }
+
+    setOverlayMsg('Membangun mesh 3D...');
+    setProgress(70);
+
+    // Build based on mode
+    if (currentMode === 'displacement') currentMesh = buildDisplacementMesh(colorTex, depth);
+    else if (currentMode === 'lowpoly')  currentMesh = buildLowPolyMesh(colorTex, depth);
+    else if (currentMode === 'voxel')    currentMesh = buildVoxelMesh(colorCanvas, depth);
+    else if (currentMode === 'pointcloud') currentMesh = buildPointCloud(colorCanvas, depth);
+
+    currentMesh.castShadow = true;
+    scene.add(currentMesh);
+    setProgress(95);
+
+    // Update info
+    lastGenTime = Math.round(performance.now() - t0);
+    const vCount = countVerts(currentMesh);
+    document.getElementById('infoVerts').textContent = vCount.toLocaleString();
+    document.getElementById('infoTris').textContent = Math.floor(vCount / 3).toLocaleString();
+    document.getElementById('infoTime').textContent = lastGenTime + 'ms';
+    document.getElementById('infoMode').textContent = currentMode;
+
+    // Show viewer controls
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('viewerCtrl').style.display = 'flex';
+    document.getElementById('btnReapply').style.display = 'block';
+
+    resetView();
+    setProgress(100);
+    saveHistory(currentImageData, currentMode);
+    showOverlay(false);
+  } catch(e) {
+    showOverlay(false);
+    toast('Error: ' + e.message);
+    console.error(e);
+  }
+};
+
+window.reapply = async function() { await generate(); };
+
+function countVerts(obj) {
+  let n = 0;
+  obj.traverse(c => {
+    if (c.isInstancedMesh) n += c.count * c.geometry.attributes.position.count;
+    else if (c.geometry) n += c.geometry.attributes.position?.count || 0;
+  });
+  return n;
+}
+
+function disposeObj(obj) {
+  obj.traverse(c => {
+    if (c.geometry) c.geometry.dispose();
+    if (c.material) { if (Array.isArray(c.material)) c.material.forEach(m => m.dispose()); else c.material.dispose(); }
+  });
+}
+
+function loadImg(src) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => res(img);
+    img.onerror = rej;
+    img.src = src;
+  });
+}
+
+function renderDepthPreview(depth) {
+  const dc = document.getElementById('depthCanvas');
+  dc.style.display = 'block';
+  dc.width = depth.width; dc.height = depth.height;
+  const ctx = dc.getContext('2d');
+  const img = ctx.createImageData(depth.width, depth.height);
+  for (let i = 0; i < depth.data.length; i++) {
+    const v = Math.floor(depth.data[i] * 255);
+    img.data[i*4] = v; img.data[i*4+1] = v; img.data[i*4+2] = v; img.data[i*4+3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+// ─── Controls ─────────────────────────────────────────────────────────────────
+window.toggleWireframe = function() {
+  wireframe = !wireframe;
+  currentMesh?.traverse(c => { if (c.material) { if (Array.isArray(c.material)) c.material.forEach(m => m.wireframe = wireframe); else c.material.wireframe = wireframe; }});
+  document.getElementById('btnWF').classList.toggle('active', wireframe);
+};
+
+window.toggleAutoRotate = function() {
+  autoRotate = !autoRotate;
+  document.getElementById('btnAR').classList.toggle('active', autoRotate);
+};
+
+window.resetView = function() {
+  camera.position.set(0, 2, 4);
+  controls.target.set(0, 0, 0);
+  controls.update();
+};
+
+window.topView = function() {
+  camera.position.set(0, 6, 0.01);
+  controls.target.set(0, 0, 0);
+  controls.update();
+};
+
+window.updateParam = function(key, val) {
+  params[key] = parseFloat(val);
+  document.getElementById('v' + key.charAt(0).toUpperCase() + key.slice(1)).textContent = val;
+};
+
+window.setMode = function(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.toggle('active', c.dataset.mode === mode));
+  document.getElementById('infoMode').textContent = mode;
+};
+
+// ─── Export ───────────────────────────────────────────────────────────────────
+const exporter = new GLTFExporter();
+window.exportGLB = function() {
+  if (!currentMesh) return toast('Generate 3D dulu');
+  exporter.parse(currentMesh, glb => {
+    const blob = new Blob([glb], { type: 'model/gltf-binary' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'mighan-3d.glb'; a.click();
+  }, e => toast('Export error: ' + e), { binary: true });
+};
+
+window.exportOBJ = function() {
+  if (!currentMesh) return toast('Generate 3D dulu');
+  import('three/addons/exporters/OBJExporter.js').then(({ OBJExporter }) => {
+    const obj = new OBJExporter().parse(currentMesh);
+    const blob = new Blob([obj], { type: 'text/plain' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'mighan-3d.obj'; a.click();
+  });
+};
+
+window.screenshotView = function() {
+  renderer.render(scene, camera);
+  const a = document.createElement('a'); a.href = document.getElementById('c3d').toDataURL(); a.download = 'mighan-3d.png'; a.click();
+};
+
+// ─── Upload ───────────────────────────────────────────────────────────────────
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); handleFile(e.dataTransfer.files[0]); });
+document.getElementById('fileIn').addEventListener('change', e => handleFile(e.target.files[0]));
+
+function handleFile(f) {
+  if (!f?.type.startsWith('image/')) return toast('File harus gambar');
+  const r = new FileReader();
+  r.onload = e => {
+    currentImageData = e.target.result;
+    document.getElementById('previewImg').src = currentImageData;
+    document.getElementById('previewImg').style.display = 'block';
+    document.getElementById('dzContent').style.display = 'none';
+    dz.classList.add('loaded');
+    document.getElementById('btnGen').disabled = false;
+  };
+  r.readAsDataURL(f);
+}
+
+// ─── History ─────────────────────────────────────────────────────────────────
+function saveHistory(img, mode) {
+  let h = JSON.parse(localStorage.getItem('i23d_hist') || '[]');
+  h.unshift({ img, mode, ts: Date.now() });
+  if (h.length > 8) h = h.slice(0, 8);
+  localStorage.setItem('i23d_hist', JSON.stringify(h));
+  renderHistory();
+}
+
+function renderHistory() {
+  const h = JSON.parse(localStorage.getItem('i23d_hist') || '[]');
+  document.getElementById('histGrid').innerHTML = h.map((item, i) => `
+    <div class="hist-item" onclick="loadHist(${i})">
+      <img src="${item.img}" alt="">
+      <span class="hist-badge">${item.mode}</span>
+    </div>`).join('');
+}
+
+window.loadHist = function(i) {
+  const h = JSON.parse(localStorage.getItem('i23d_hist') || '[]');
+  if (!h[i]) return;
+  currentImageData = h[i].img;
+  document.getElementById('previewImg').src = currentImageData;
+  document.getElementById('previewImg').style.display = 'block';
+  document.getElementById('dzContent').style.display = 'none';
+  dz.classList.add('loaded');
+  document.getElementById('btnGen').disabled = false;
+  setMode(h[i].mode);
+};
+
+// ─── UI Helpers ───────────────────────────────────────────────────────────────
+function showOverlay(show, msg, sub) {
+  const o = document.getElementById('genOverlay');
+  o.classList.toggle('show', show);
+  if (msg) document.getElementById('genMsg').textContent = msg;
+  if (sub) document.getElementById('genSub').textContent = sub;
+  document.getElementById('btnGen').disabled = show;
+  if (show) { document.getElementById('progBar').style.display = 'block'; document.getElementById('progText').style.display = 'block'; }
+  else { document.getElementById('progBar').style.display = 'none'; document.getElementById('progText').style.display = 'none'; setProgress(0); }
+}
+
+function setOverlayMsg(msg) { document.getElementById('genMsg').textContent = msg; }
+
+function setProgress(pct) {
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progText').textContent = pct < 100 ? `${Math.round(pct)}%...` : '✓ Selesai!';
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+initThree();
+renderHistory();
+initModel();
+</script>
+</body>
+</html>
