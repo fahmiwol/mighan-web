@@ -149,6 +149,7 @@ export default function DashboardPage() {
           <div className="section-header"><h2>📚 Dokumentasi</h2></div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:12}}>
             {[
+              {href:'/dashboard/rooms', icon:'🏠', label:'My Rooms', desc:'Kelola dunia virtualmu', external:false},
               {href:'https://mighan.com/api/docs', icon:'📖', label:'API Documentation', desc:'Swagger UI semua endpoint', external:true},
               {href:'/profile', icon:'👤', label:'Profil Saya', desc:'Edit nama & info akun', external:false},
               {href:'https://ops.mighan.com', icon:'🎮', label:'Enter 3D World', desc:'Buka kantor virtual Mighantect', external:true},
