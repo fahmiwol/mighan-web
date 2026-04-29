@@ -5,11 +5,6 @@ import { getThemes, type ThemePreset } from '../lib/registry'
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? ''
 
-function getHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('mighan_user_token') : null
-  return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
-}
-
 interface CreateRoomModalProps {
   onClose: () => void
   onCreated: () => void
@@ -25,6 +20,11 @@ export default function CreateRoomModal({ onClose, onCreated, tier, limits, room
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [themes, setThemes] = useState<Record<string, ThemePreset>>({})
+
+  function getHeaders() {
+    const token = localStorage.getItem('mighan_user_token')
+    return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+  }
 
   useEffect(() => {
     getThemes().then(setThemes)

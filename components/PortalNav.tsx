@@ -6,6 +6,7 @@ import { useAuth } from './AuthProvider'
 
 const nav = [
   { href: '/dashboard', label: '📊 Dashboard' },
+  { href: '/dashboard/rooms', label: '🏠 My Rooms' },
   { href: '/profile', label: '👤 Profil' },
 ]
 

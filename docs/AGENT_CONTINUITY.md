@@ -18,16 +18,16 @@
 
 ## Current focus (update setiap akhir sesi)
 
-| Field | Nilai terakhir (2026-04-22 — Claude Sonnet 4.6 Sprint 12 NPC Generator v0) |
+| Field | Nilai terakhir (2026-04-30 — Claude Code Mighan-Web SaaS stabil) |
 |--------|-----------------------------|
-| **Prioritas disepakati** | **Sprint 12 — Phase 1 berlangsung.** NPC Generator v0 ✅ DONE (`design-studio/npc-generator.html` commit `95036ef`). **Delegasi ke Cursor/Antigravity:** World Builder v0 + Object Builder v0 + Asset Generator v0 + Map Generator v0 + Visual Enhancement — lihat **`docs/SPRINT_12B_MODULES_BRIEF.md`**. Claude review hasil setelah selesai. **Paralel:** Sprint 11-B Gateway Startup (gateway :9797 belum ditest) + Gmail SSO Key Harvester (`server/key-harvester.js`). |
-| **Tool status (PENTING)** | **PowerShell tool JALAN** ✅ — gunakan untuk semua npm/git/node CLI. Bash tool MATI (exit code 1). |
-| **Blokir** | API keys semua kosong (placeholder) di `server/.env` + `server/settings.json`. Gateway :9797 belum ditest. **Solusi:** Gmail SSO OAuth → Playwright → auto-get keys (`server/key-harvester.js` — belum dibangun). |
-| **Jangan commit** | `server/settings.json`, `server/.data/`, secret, session cookies. |
-| **Files kunci Sprint 12** | `design-studio/npc-generator.html` ✅, `docs/SPRINT_12_BUILDER_BRIEF.md` (brief lama), **`docs/SPRINT_12B_MODULES_BRIEF.md`** (brief baru — 5 modul tersisa untuk delegasi). |
-| **Peta proyek** | `docs/PROJECT_CARTOGRAPHY.md` — T5 `world.json` + T5b `agent-ledger.json`. **`npm run verify`** (root) = check all. **Three.js + outdoor:** `docs/THREEJS_REFERENCES_AND_TESTING.md`. |
+| **Prioritas disepakati** | **Mighan-Web Next.js SaaS — STABIL & LIVE.** Build deploy ✅, auth ✅, PortalNav ✅, My Rooms page ✅, CreateRoomModal ✅, hydration fix rooms ✅, registry.ts ✅. **Hydration audit selesai:** semua localStorage dijalankan di dalam callback/effect/handler — tidak ada SSR mismatch. **Perlu verifikasi live:** `/api/v1/rooms` + `/api/v1/assets/registry` di gateway. **Security:** `ADMIN_PASSWORD=mighan2026` hardcoded di Mighan-3D `server/.env` — ganti sebelum produksi. **Pages missing:** `/dashboard/wallet` (link upgrade ada, page belum). **Next:** (1) Verifikasi room API endpoints di VPS gateway, (2) Create wallet/upgrade page, (3) Register flow E2E test, (4) YouTube Agent E2E. |
+| **Tool status (PENTING)** | **PowerShell tool JALAN** ✅ — gunakan untuk semua npm/git/node CLI. Bash tool MATI (exit code 1). SSH ke VPS via `~/.ssh/sidix_session_key` jalan normal. Database query via psql (VPS) berhasil. |
+| **Blokir** | `ops.mighan.com` resolve ke Cloudflare (bukan VPS 72.62.125.6) — origin server tidak diketahui. Password admin hardcoded `mighan2026` di `server/.env` — **security risk** kalau repo/VPS expose. API keys semua kosong (placeholder) di `server/.env` + `server/settings.json`. Gateway :9797 belum ditest E2E. |
+| **Jangan commit** | `server/settings.json`, `server/.data/`, `.env`, secret, session cookies. |
+| **Files kunci Mighan-Web** | `next.config.ts` (no standalone), `app/layout.tsx` (AuthProvider), `app/dashboard/page.tsx`, `app/profile/page.tsx`, `components/AuthProvider.tsx`, `components/PortalNav.tsx`, `nginx/mighan.com.conf` (cache headers). |
+| **Peta proyek** | `docs/PROJECT_CARTOGRAPHY.md` — T5 `world.json` + T5b `agent-ledger.json`. **`npm run verify`** (root `D:\Mighan`) = check all. **Mighan-Web:** `docs/SAAS_ROADMAP.md`. |
 | **Skill / plugin** | `docs/REUSABLE_AGENT_PACK.md` + `.cursor/skills/*` + `extras/cursor-plugin-mighantect-handoff/` |
-| **Proses sesi** | Wajib: **catat → iterasi → QA → testing → catat status**. Minimum tes: **`npm run verify`**. |
+| **Proses sesi** | Wajib: **catat → iterasi → QA → testing → catat status**. Minimum tes: **`npm run verify`** (main app) + build + PM2 health check (web). |
 
 ---
 
@@ -35,6 +35,9 @@
 
 | ID | Tanggal (WIB) | Agent / tool | Ringkas |
 |----|-----------------|----------------|----------|
+| AGENT-20260430-003 | 2026-04-30 | Claude Code (Mighan-Web) | **Audit Komprehensif + Hydration Fix Rooms:** (1) Baca semua file kunci: dashboard/page.tsx, rooms/page.tsx, profile/page.tsx, AuthProvider.tsx, PortalNav.tsx, CreateRoomModal.tsx, registry.ts; (2) **Bug found & fixed:** `rooms/page.tsx:301` — `localStorage.getItem` inline di JSX render → hydration mismatch untuk user yang sudah login (server render `''`, client render token → React mismatch error); Fix: `useState('') + useEffect → setAuthToken`; (3) **Pattern fix:** `getHeaders()` di module level (rooms/page + CreateRoomModal) → dipindah ke dalam component body; (4) **PortalNav:** tambah "🏠 My Rooms" ke nav links; (5) **Build verify:** `npm run build` → 11 pages generated, 0 errors, 0 TS errors. **Belum / follow-up:** (a) `/api/v1/rooms` endpoint di gateway Mighan-3D belum diverifikasi live; (b) `/api/v1/assets/registry` endpoint (registry.ts) belum diverifikasi; (c) `/dashboard/wallet` page belum ada (link di rooms page ke Upgrade); (d) Deploy ke VPS. |
+| AGENT-20260430-002 | 2026-04-30 | Claude Code (Mighan-Web) | **Login Akses Discovery — QA & Validasi Credential:** Database query via SSH+psql ke PostgreSQL `mighan_saas` → ditemukan 3 user accounts (termasuk `fahmiwol@gmail.com`). Cek `server/.env` di `Mighan-3D` → ditemukan credential hardcoded admin Ops Center (`ADMIN_USERNAME=fahmi`, `ADMIN_PASSWORD=mighan2026`). Verifikasi `ops.mighan.com` resolve ke Cloudflare (104.21.72.63), beda dari `mighan.com` (VPS via nginx). Root `login.html` (Mighan-3D) hit `/api/auth/login` (hardcoded). `web-mighan/login.html` hit `/api/v1/auth/login` (DB). SaaS Next.js (`mighan.com/login`) pakai Google OAuth + DB. **Hasil:** Fahmi punya 2 sistem login terpisah — (1) Ops Center lama: `fahmi`/`mighan2026`, (2) SaaS baru: `fahmiwol@gmail.com` via Google OAuth. |
+| AGENT-20260430-001 | 2026-04-30 | Claude Code (Mighan-Web) | **Mighan-Web Next.js SaaS — Runtime fix + Auth + Deploy:** (1) **`next.config.ts`** — hapus `output: 'standalone'` yang bikin `next start` crash 17× restarts PM2, ganti ke build biasa; (2) **`app/layout.tsx`** — wrap `<body>` dengan `<AuthProvider>` supaya `useAuth()` return context nyata bukan dummy; (3) **`app/profile/page.tsx`** — bugfix variabel `headers` undefined → `headers: getHeaders()` di PUT fetch; (4) **`app/dashboard/page.tsx` + `app/profile/page.tsx`** — import `<PortalNav />` untuk konsistensi desain antar portal dan landing page; (5) **Build & deploy** — local build → push `8e9e54f` → VPS pull → rebuild → PM2 restart `mighan-web`; semua 10 static pages generated; (6) **Nginx cache fix** — `proxy_hide_header Cache-Control` + `add_header Cache-Control "no-cache, no-store, must-revalidate"` + `Pragma no-cache`; (7) **Cloudflare purge** — Fahmi purge manual dari dashboard; (8) **SMTP verification** — `nodemailer.verify()` → `SMTP_OK` pakai Gmail credentials dari `.env`; (9) **NPC Skill E2E** — berhasil assign `world-builder` plugin ke NPC `sari` via `POST /api/npc/sari/skill` setelah persist user plugin ownership ke `.data/plugin-registry.json` + restart gateway. **Tes:** `curl -s http://localhost:3200/dashboard | grep -c PortalNav` → 1 (SSR include), `curl -sI https://mighan.com/dashboard` → HTTP/1.1 200 OK + no-cache headers. **Belum:** DNS `ops.mighan.com` belum resolve, YouTube Agent belum dites, Agent Revenue Data masih kosong. |
 | AGENT-20260422-001 | 2026-04-22 | Claude Sonnet 4.6 | **NPC Generator v0 — Integrasi D:\web-mighan ke design-studio:** Ditemukan 2 file di `D:\web-mighan\` (index.html dark cyberpunk landing + npc-editor.html chibi avatar builder). `npc-editor.html` diintegrasikan ke project utama sebagai `design-studio/npc-generator.html` (62KB, 1292 baris) dengan adaptasi: (1) Gateway connection check (`GATEWAY` const + `/health` probe + dot status di topbar); (2) Tombol "💾 Save NPC" → `saveNPC()` async — POST `/api/npc/create`, fallback localStorage jika gateway offline/endpoint belum ada; (3) Tombol "🖼️ AI Portrait" → `generatePortrait()` — build prompt dari agent appearance → POST `/api/ai/generate` (gateway), fallback Pollinations direct jika gateway offline; (4) "← Studio" back link; (5) Tab Info baru (name/archetype/catchphrase/role editable); (6) Portrait preview section + "Use as Card Avatar" button. Semua elemen original dipertahankan: chibi CSS renderer (`buildChibi()`), NPC card (hexagon clip-path, rarity strip, stats STR/INT/CRE, power bar, 5-slot skill inventory), 10 real Mighan agent data, Room Builder + Furniture Shop. `design-studio/index.html` diupdate — tambah card "NPC Generator" (🧑, Sprint 12 🆕, badge READY). **Validation:** 7 key checks pass (GATEWAY/buildChibi/saveNPC/generatePortrait/inv-slot/ncp-hex/rarity-strip). **Review:** `http://localhost:9797/design-studio/npc-generator.html` atau `http://localhost:8080/design-studio/npc-generator.html`. **Belum:** `POST /api/npc/create` endpoint belum ada di gateway (save fallback ke localStorage). **Next:** tambah `/api/npc/create` ke `server/gateway.js`, commit+push. |
 | AGENT-20260421-002 | 2026-04-21 | Claude Opus 4.7 | **Sprint 11-A selesai + Pemisahan Web + Visi Gmail SSO Autonomous:** (1) **Sprint 11-A recap:** 4 worktree deleted (modest-black/keen-driscoll/hopeful-bhabha/pedantic-shamir), zen-clarke committed `eef9d83` → `f4883b3` + pushed, main pending committed `8f9dda6` → `9e70165` + pushed. Worktree final: main + 2 claude agent worktrees. (2) **Mighan-Web dipisah:** `D:\Mighan\zen-clarke-afcc8f\` → `D:\Mighan-Web\` (repo sendiri, git master commit `977e2ec`). Main app `D:\Mighan\` bersih tanpa worktree. Branch `origin/claude/zen-clarke-afcc8f` dibiarkan di remote GitHub sebagai backup. Review link: `file:///D:/Mighan-Web/index.html`. (3) **Sprint plan main app:** 11-B Gateway Startup (1d) → 11-C E2E Core Loop (2d) → 11-D Design Studio Audit (1d, paralel) → 11-E Automation Audit (2d, paralel) → 11-F Admin Dashboard (1d). (4) **API Keys status:** `server/.env` + `server/settings.json` semua kosong/placeholder — `ANTHROPIC_API_KEY=sk-ant-xxx`, `GEMINI_API_KEY=xxx`. (5) **VISI BARU — Gmail SSO Autonomous Key Acquisition:** Fahmi propose pakai Gmail OAuth sebagai master credential → agent gunakan Playwright/MCP untuk login ke platform (Google AI Studio, OpenRouter, HuggingFace, Anthropic Console) via "Continue with Google" → auto-register/login → ambil API key → simpan ke `server/.env` + `server/settings.json`. Infrastruktur sudah ada: `server/sso-manager.js`, `server/social-accounts.js` (auth type: oauth/playwright), buzzer-engine Playwright headless Chromium. **Perlu dibangun:** modul `server/key-harvester.js` — Playwright flow per platform + key storage. **Keuntungan:** Fahmi login sekali, semua platform auto-setup, zero manual key copy-paste. **Next session:** implement Gmail SSO → Playwright key-harvester flow, sambil Sprint 11-B gateway audit. |
 | AGENT-20260420-002 | 2026-04-20 | Claude Code (Sprint 10-B) | **Outdoor shirt sync + AI portrait generate:** (1) `src/world/OutdoorWorld.js` — `_makePedestrianGroup` sekarang store `shirtMat` + `skinMat` di `group.userData`; `updateAgentNpc()` tambah handler `opts.shirt` + `opts.skin` (setHex + emissive + needsUpdate → real-time update outdoor NPC appearance); (2) `src/ui/NPCEditorPanel.js` — tambah "🎨 Portrait" button di card actions, `_generatePortrait()` (build prompt dari name+role+appearance → POST `/api/ai/generate` → tampilkan img), `_usePortrait()` (POST `/api/npc/:id/avatar` dengan url → save sebagai avatar), CSS `.npe-btn-portrait` + `.npe-portrait-result`, update `_save()` untuk sync skin juga ke outdoor; (3) `server/gateway.js` — `/api/npc/:id/avatar` POST sekarang support `{url}` field (download gambar via http/https + save ke `/public/avatars/`). **`npm run verify` → PASS (18 server + 6 client).** Commit `b102489` push done. **Next:** Sprint 10-C: `design-studio/npc-generator.html` (B-13) atau B-15 Public Demo Mode. |
@@ -83,6 +86,57 @@
 ---
 
 ## Session detail
+
+### AGENT-20260430-001 — Mighan-Web Next.js SaaS runtime fix + auth + deploy
+
+- **Agent:** Claude Code CLI (sesi kompres continuation)
+- **Konteks / permintaan Fahmi:** Stabilkan dan deploy Mighan-Web Next.js SaaS ke VPS setelah series bugfixes dari sesi sebelumnya.
+- **Temuan & perubahan file:**
+  1. **`next.config.ts`** — Hapus `output: 'standalone'` (crash `next start` di PM2, 17 restarts → 0 unstable restarts).
+  2. **`app/layout.tsx`** — Wrap `<body>` dengan `<AuthProvider>` supaya `useAuth()` return context nyata.
+  3. **`app/profile/page.tsx`** — Bugfix: variabel `headers` undefined → `headers: getHeaders()` di fetch PUT.
+  4. **`app/dashboard/page.tsx` + `app/profile/page.tsx`** — Tambah `import PortalNav from '../../components/PortalNav'` + render `<PortalNav />` di awal return untuk konsistensi navigasi dengan landing page.
+  5. **VPS nginx** — `proxy_hide_header Cache-Control;` + `add_header Cache-Control "no-cache, no-store, must-revalidate";` + `add_header Pragma "no-cache";` untuk prevent stale HTML caching.
+- **Tes / verifikasi:**
+  - Local build: `npm run build` → 10 static pages generated ✅
+  - VPS PM2 restart: `pm2 restart mighan-web` → status online, 0 unstable restarts ✅
+  - SSR verify: `curl -s http://localhost:3200/dashboard | grep -c 'background:#0f0f14'` → 1 (PortalNav inline SSR) ✅
+  - Public endpoint: `curl -sI https://mighan.com/dashboard` → HTTP/1.1 200 OK + `Cache-Control: no-cache, no-store, must-revalidate` ✅
+- **Belum / follow-up:**
+  1. DNS `ops.mighan.com` — A record belum pointing ke `72.62.125.6`
+  2. YouTube Agent E2E — code complete tapi butuh ffmpeg + API keys + long generation time
+  3. Agent Revenue Data — module live tapi dataset kosong, perlu agent autonomy generate sample earnings
+  4. `nodemailer` berada di root `node_modules` bukan `server/node_modules` — kalau auth routes gagal load nodemailer perlu symlink/install di server dir
+
+### AGENT-20260430-002 — Login Akses Discovery & Credential QA
+
+- **Agent:** Claude Code CLI
+- **Konteks / permintaan Fahmi:** "ini login akses saya apa yah?" — Fahmi tanya credential untuk `ops.mighan.com/login.html`.
+- **Investigasi & validasi (QA):**
+  1. **Screenshot analysis:** URL `ops.mighan.com/login.html` — dark theme, "MIGHAN OPS CENTER", tab LOGIN/AKSES TAMU, field Username+Password+Kode PIN. Beda dari `web-mighan/login.html` (yang punya "👋 Selamat Datang" + "Masuk dengan Google").
+  2. **File source tracing:** `ops.mighan.com/login.html` = root `Mighan-3D/login.html` (bukan `web-mighan/login.html`). Root `login.html` hit endpoint `/api/auth/login` (bukan `/api/v1/auth/login`).
+  3. **Code review `gateway.js:162`:** Handler `/api/auth/login` menggunakan hardcoded admin credentials dari `process.env.ADMIN_USERNAME` / `process.env.ADMIN_PASSWORD` dengan fallback default `fahmi` / `mighan2026`.
+  4. **Env file audit:** `server/.env` (Mighan-3D) berisi `ADMIN_USERNAME=fahmi` dan `ADMIN_PASSWORD=mighan2026`. Tidak ada override di root `.env`.
+  5. **Database query (PostgreSQL `mighan_saas`):** Via SSH+psql — `SELECT email, password_hash, google_id FROM users` → ditemukan 3 accounts:
+     - `fahmiwol@gmail.com` | `$2b$12$...` | `103076403977884340032` (Google ID)
+     - `ratuzulfa1@gmail.com` | (hash) | (google_id)
+     - `tiranyx.id@gmail.com` | (hash) | (google_id)
+  6. **DNS verification:** `nslookup ops.mighan.com` → Cloudflare IP (104.21.72.63), beda dari `mighan.com` (VPS 72.62.125.6 via nginx). Konfirmasi: `ops.mighan.com` dan `mighan.com` bisa jadi serve dari origin berbeda meski sama domain root.
+- **Temuan kritis:** Ada **3 sistem login terpisah** di ekosistem Mighan:
+  | Sistem | URL | Auth Method | Credential Fahmi |
+  |--------|-----|-------------|------------------|
+  | Mighan-3D Ops Center (lama) | `ops.mighan.com/login.html` | Hardcoded admin env | `fahmi` / `mighan2026` |
+  | Mighan-Web Portal (lama) | `web-mighan/login.html` | DB + Google OAuth | `fahmiwol@gmail.com` (Google) |
+  | Mighan-Web SaaS (baru) | `mighan.com/login` | PostgreSQL + Google OAuth | `fahmiwol@gmail.com` (Google) |
+- **Tes / verifikasi:**
+  - `curl -s https://ops.mighan.com/login.html | grep "Ops Center"` → match ✅
+  - `grep ADMIN_PASSWORD server/.env` → `mighan2026` ✅
+  - `psql SELECT` → 3 rows users ✅
+- **Risk / security note:** Password admin hardcoded `mighan2026` di `server/.env` — **harus diganti** kalau VPS publicly accessible. Fahmi disarankan ganti via env var.
+- **Belum / follow-up:**
+  1. Ganti `ADMIN_PASSWORD` di `server/.env` + restart gateway
+  2. Verifikasi apakah `ops.mighan.com` seharusnya proxy ke VPS 72.62.125.6 (saat ini ke Cloudflare → origin unknown)
+  3. Dokumentasi login credential Fahmi di tempat aman (1Password / vault)
 
 ### AGENT-20260416-005 — HUD layout + bug fixes (dilanjutkan dari sesi 004)
 

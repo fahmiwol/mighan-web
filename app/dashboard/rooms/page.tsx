@@ -40,11 +40,6 @@ interface RoomListResponse {
   error?: string
 }
 
-function getHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('mighan_user_token') : null
-  return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
-}
-
 const THEME_ICONS: Record<string, string> = {
   modern: '🏢',
   cyberpunk: '🌃',
@@ -64,8 +59,16 @@ export default function RoomsPage() {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [toast, setToast] = useState('')
+  const [authToken, setAuthToken] = useState('')
+
+  function getHeaders() {
+    const token = localStorage.getItem('mighan_user_token')
+    return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+  }
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 3000) }
+
+  useEffect(() => { setAuthToken(localStorage.getItem('mighan_user_token') || '') }, [])
 
   const loadRooms = useCallback(async () => {
     setLoading(true)
@@ -298,7 +301,7 @@ export default function RoomsPage() {
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: 8 }}>
                   <a
-                    href={`https://ops.mighan.com?roomId=${room.id}&token=${typeof window !== 'undefined' ? localStorage.getItem('mighan_user_token') || '' : ''}`}
+                    href={`https://ops.mighan.com?roomId=${room.id}&token=${authToken}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
