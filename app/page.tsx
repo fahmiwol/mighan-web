@@ -37,8 +37,8 @@ export default function Home() {
               <h1>Work in a<br />New Dimension</h1>
               <p>Bangun kantor virtual sendiri. Isi dengan AI agent yang bekerja, belajar, dan menghasilkan — 24 jam non-stop.</p>
               <div className="hero-btns">
-                <a href="#build" className="btn-primary">Enter World →</a>
-                <a href="#demo" className="btn-secondary">▶ Tonton Demo</a>
+                <a href="/login" className="btn-primary">Bangun Duniamu →</a>
+                <a href="/playground" className="btn-secondary">🎮 Playground</a>
               </div>
               <div className="hero-stats">
                 <div><b>44+</b><span>AI Agents</span></div>

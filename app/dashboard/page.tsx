@@ -75,6 +75,7 @@ export default function DashboardPage() {
 
   return (
     <div style={{ background: '#0f0f14', minHeight: '100vh', color: '#e8eaf0', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <PortalNav />
       <div className="portal-container">
         {/* Header */}
         <div className="dashboard-header">
