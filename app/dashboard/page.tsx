@@ -6,7 +6,7 @@ import '../(auth)/portal.css'
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? ''
 
-interface User { displayName?: string; email?: string; tier?: string }
+interface User { displayName?: string; email?: string; tier?: string; subscriptionTier?: string }
 interface ApiKey { id: string; name: string; maskedKey: string; tier: string; requestCount: number; createdAt: string }
 interface Usage { totalRequests: number; monthlyLimit: number; activeKeys: number }
 
@@ -38,12 +38,12 @@ export default function DashboardPage() {
 
   const loadUsage = useCallback(async () => {
     const r = await fetch(`${API}/api/v1/user/usage`, { headers }).then(r => r.json()).catch(() => null)
-    if (r?.ok) setUsage(r.data)
+    if (r?.success) setUsage(r.data)
   }, [token])
 
   const loadKeys = useCallback(async () => {
     const r = await fetch(`${API}/api/v1/user/keys`, { headers }).then(r => r.json()).catch(() => null)
-    if (r?.ok) setKeys(r.data || [])
+    if (r?.success) setKeys(r.data || [])
   }, [token])
 
   useEffect(() => { loadUser(); loadUsage(); loadKeys() }, [])
@@ -53,14 +53,14 @@ export default function DashboardPage() {
       method: 'POST', headers,
       body: JSON.stringify({ name: keyName, tier: keyTier })
     }).then(r => r.json()).catch(() => null)
-    if (r?.ok && r.data?.key) { setNewKey(r.data.key); showToast('API key berhasil dibuat!'); loadKeys(); loadUsage() }
-    else showToast(r?.data?.error || 'Gagal membuat key')
+    if (r?.success && r.data?.key) { setNewKey(r.data.key); showToast('API key berhasil dibuat!'); loadKeys(); loadUsage() }
+    else showToast(r?.error || 'Gagal membuat key')
   }
 
   async function revokeKey(id: string) {
     if (!confirm('Yakin ingin revoke key ini?')) return
     const r = await fetch(`${API}/api/v1/user/keys/${id}`, { method: 'DELETE', headers }).then(r => r.json()).catch(() => null)
-    if (r?.ok) { showToast('Key revoked'); loadKeys(); loadUsage() }
+    if (r?.success || r?.ok) { showToast('Key revoked'); loadKeys(); loadUsage() }
     else showToast('Gagal revoke key')
   }
 
@@ -80,7 +80,7 @@ export default function DashboardPage() {
             <div className="user-avatar">{initial}</div>
             <div>
               <div className="user-name">{user?.displayName || user?.email || 'Loading...'}</div>
-              <span className="user-tier">{user?.tier || 'free'}</span>
+              <span className="user-tier">{user?.subscriptionTier || user?.tier || 'free'}</span>
             </div>
             <button className="btn-sm" onClick={() => { localStorage.removeItem('mighan_user_token'); router.push('/login') }}
               style={{marginLeft:12,background:'#242430',color:'#e8eaf0'}}>Keluar</button>
@@ -102,7 +102,7 @@ export default function DashboardPage() {
           </div>
           <div className="stat-card">
             <div className="label">Subscription</div>
-            <div className="value" style={{fontSize:20}}>{(user?.tier || 'free').charAt(0).toUpperCase() + (user?.tier || 'free').slice(1)}</div>
+            <div className="value" style={{fontSize:20}}>{(user?.subscriptionTier || user?.tier || 'free').charAt(0).toUpperCase() + (user?.subscriptionTier || user?.tier || 'free').slice(1)}</div>
             <div className="change"><a href="#" style={{color:'#4f6af6'}}>Upgrade →</a></div>
           </div>
         </div>

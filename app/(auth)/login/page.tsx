@@ -23,15 +23,15 @@ export default function LoginPage() {
       body: JSON.stringify({ email, password }),
     }).then(r => r.json()).catch(() => ({ ok: false }))
 
-    if (r.ok && r.data?.token) {
-      localStorage.setItem('mighan_user_token', r.data.token)
+    if (r.ok && r.accessToken) {
+      localStorage.setItem('mighan_user_token', r.accessToken)
       showToast('Login berhasil!')
       setTimeout(() => {
         const params = new URLSearchParams(window.location.search)
         window.location.href = params.get('redirect') || '/dashboard'
       }, 500)
     } else {
-      showToast(r.data?.error || 'Login gagal', 'error')
+      showToast(r.error || 'Login gagal', 'error')
     }
   }
 

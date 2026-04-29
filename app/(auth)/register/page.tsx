@@ -6,14 +6,16 @@ import Link from 'next/link'
 const API = process.env.NEXT_PUBLIC_API_URL ?? ''
 
 export default function RegisterPage() {
+  const [step, setStep] = useState<'form' | 'otp'>('form')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [otp, setOtp] = useState('')
   const [toast, setToast] = useState<{msg: string; type: 'info'|'error'} | null>(null)
 
   function showToast(msg: string, type: 'info'|'error' = 'info') {
     setToast({ msg, type })
-    setTimeout(() => setToast(null), 3000)
+    setTimeout(() => setToast(null), 4000)
   }
 
   async function handleRegister(e: React.FormEvent) {
@@ -24,14 +26,76 @@ export default function RegisterPage() {
       body: JSON.stringify({ email, password, displayName: name }),
     }).then(r => r.json()).catch(() => ({ ok: false }))
 
-    if (r.ok && r.data?.token) {
-      localStorage.setItem('mighan_user_token', r.data.token)
+    if (r.ok) {
+      showToast('Kode OTP dikirim ke email Anda')
+      setStep('otp')
+    } else {
+      showToast(r.error || 'Registrasi gagal', 'error')
+    }
+  }
+
+  async function handleVerifyOtp(e: React.FormEvent) {
+    e.preventDefault()
+    const r = await fetch(`${API}/api/v1/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp }),
+    }).then(r => r.json()).catch(() => ({ ok: false }))
+
+    if (r.ok && r.accessToken) {
+      localStorage.setItem('mighan_user_token', r.accessToken)
       showToast('Akun berhasil dibuat!')
       setTimeout(() => { window.location.href = '/dashboard' }, 500)
     } else {
-      showToast(r.data?.error || 'Registrasi gagal', 'error')
+      showToast(r.error || 'Kode OTP tidak valid', 'error')
     }
   }
+
+  async function handleResendOtp() {
+    const r = await fetch(`${API}/api/v1/auth/resend-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    }).then(r => r.json()).catch(() => ({ ok: false }))
+    showToast(r.ok ? 'OTP baru dikirim!' : 'Gagal kirim ulang OTP', r.ok ? 'info' : 'error')
+  }
+
+  if (step === 'otp') return (
+    <div className="auth-card">
+      <h1>✉️ Verifikasi Email</h1>
+      <p className="subtitle">Masukkan kode OTP 6 digit yang dikirim ke <strong>{email}</strong></p>
+
+      <form onSubmit={handleVerifyOtp}>
+        <div className="form-group">
+          <label>Kode OTP</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="123456"
+            required
+            maxLength={6}
+            value={otp}
+            onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
+            style={{ fontSize: 24, letterSpacing: 8, textAlign: 'center' }}
+          />
+        </div>
+        <button type="submit" className="btn btn-primary">Verifikasi</button>
+      </form>
+
+      <p className="auth-footer">
+        Tidak dapat kode?{' '}
+        <a href="#" onClick={e => { e.preventDefault(); handleResendOtp() }}>Kirim ulang</a>
+        {' · '}
+        <a href="#" onClick={e => { e.preventDefault(); setStep('form') }}>Kembali</a>
+      </p>
+
+      {toast && (
+        <div className="toast show" style={{ background: toast.type === 'error' ? '#2a1a1a' : undefined }}>
+          {toast.msg}
+        </div>
+      )}
+    </div>
+  )
 
   return (
     <div className="auth-card">
@@ -61,7 +125,7 @@ export default function RegisterPage() {
         </div>
         <div className="form-group">
           <label>Password</label>
-          <input type="password" placeholder="Minimal 8 karakter" required minLength={8} value={password} onChange={e => setPassword(e.target.value)} />
+          <input type="password" placeholder="Minimal 6 karakter" required minLength={6} value={password} onChange={e => setPassword(e.target.value)} />
         </div>
         <button type="submit" className="btn btn-primary">Buat Akun</button>
       </form>

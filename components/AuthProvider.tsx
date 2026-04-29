@@ -7,6 +7,8 @@ interface User {
   name?: string
   email?: string
   tier?: string
+  subscriptionTier?: string
+  avatarUrl?: string
 }
 
 interface AuthCtx {
