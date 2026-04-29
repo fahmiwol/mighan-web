@@ -29,14 +29,17 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('mighan_user_token') : null
-  const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+  function getHeaders() {
+    const token = localStorage.getItem('mighan_user_token')
+    return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+  }
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 3000) }
 
   useEffect(() => {
+    const token = localStorage.getItem('mighan_user_token')
     if (!token) { router.push('/login'); return }
-    fetch(`${API}/api/v1/user/profile`, { headers })
+    fetch(`${API}/api/v1/user/profile`, { headers: getHeaders() })
       .then(r => r.json())
       .then(r => {
         if (r.success && r.data) {
@@ -55,7 +58,7 @@ export default function ProfilePage() {
     setSaving(true)
     const r = await fetch(`${API}/api/v1/user/profile`, {
       method: 'PUT',
-      headers,
+      headers: getHeaders(),
       body: JSON.stringify({ displayName, avatarUrl: avatarUrl || undefined })
     }).then(r => r.json()).catch(() => null)
     setSaving(false)

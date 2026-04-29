@@ -29,31 +29,34 @@ export default function DashboardPage() {
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 3000) }
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('mighan_user_token') : null
-  const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+  function getHeaders() {
+    const token = localStorage.getItem('mighan_user_token')
+    return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+  }
 
   const loadUser = useCallback(async () => {
+    const token = localStorage.getItem('mighan_user_token')
     if (!token) { router.push('/login'); return }
-    const r = await fetch(`${API}/api/v1/auth/me`, { headers }).then(r => r.json()).catch(() => null)
+    const r = await fetch(`${API}/api/v1/auth/me`, { headers: getHeaders() }).then(r => r.json()).catch(() => null)
     if (r?.ok && r.user) setUser(r.user)
     else { localStorage.removeItem('mighan_user_token'); router.push('/login') }
-  }, [token, router])
+  }, [router])
 
   const loadUsage = useCallback(async () => {
-    const r = await fetch(`${API}/api/v1/user/usage`, { headers }).then(r => r.json()).catch(() => null)
+    const r = await fetch(`${API}/api/v1/user/usage`, { headers: getHeaders() }).then(r => r.json()).catch(() => null)
     if (r?.success) setUsage(r.data)
-  }, [token])
+  }, [])
 
   const loadKeys = useCallback(async () => {
-    const r = await fetch(`${API}/api/v1/user/keys`, { headers }).then(r => r.json()).catch(() => null)
+    const r = await fetch(`${API}/api/v1/user/keys`, { headers: getHeaders() }).then(r => r.json()).catch(() => null)
     if (r?.success) setKeys(r.data || [])
-  }, [token])
+  }, [])
 
   useEffect(() => { loadUser(); loadUsage(); loadKeys() }, [])
 
   async function createKey() {
     const r = await fetch(`${API}/api/v1/user/keys`, {
-      method: 'POST', headers,
+      method: 'POST', headers: getHeaders(),
       body: JSON.stringify({ name: keyName, tier: keyTier })
     }).then(r => r.json()).catch(() => null)
     if (r?.success && r.data?.key) { setNewKey(r.data.key); showToast('API key berhasil dibuat!'); loadKeys(); loadUsage() }
@@ -62,7 +65,7 @@ export default function DashboardPage() {
 
   async function revokeKey(id: string) {
     if (!confirm('Yakin ingin revoke key ini?')) return
-    const r = await fetch(`${API}/api/v1/user/keys/${id}`, { method: 'DELETE', headers }).then(r => r.json()).catch(() => null)
+    const r = await fetch(`${API}/api/v1/user/keys/${id}`, { method: 'DELETE', headers: getHeaders() }).then(r => r.json()).catch(() => null)
     if (r?.success || r?.ok) { showToast('Key revoked'); loadKeys(); loadUsage() }
     else showToast('Gagal revoke key')
   }
