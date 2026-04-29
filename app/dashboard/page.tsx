@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useAuth } from '../../components/AuthProvider'
 import '../(auth)/portal.css'
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? ''
@@ -15,6 +17,7 @@ function fmtDate(iso: string) { return iso ? new Date(iso).toLocaleDateString('i
 
 export default function DashboardPage() {
   const router = useRouter()
+  const { logout } = useAuth()
   const [user, setUser] = useState<User | null>(null)
   const [keys, setKeys] = useState<ApiKey[]>([])
   const [usage, setUsage] = useState<Usage | null>(null)
@@ -82,7 +85,7 @@ export default function DashboardPage() {
               <div className="user-name">{user?.displayName || user?.email || 'Loading...'}</div>
               <span className="user-tier">{user?.subscriptionTier || user?.tier || 'free'}</span>
             </div>
-            <button className="btn-sm" onClick={() => { localStorage.removeItem('mighan_user_token'); router.push('/login') }}
+            <button className="btn-sm" onClick={logout}
               style={{marginLeft:12,background:'#242430',color:'#e8eaf0'}}>Keluar</button>
           </div>
         </div>
@@ -141,11 +144,12 @@ export default function DashboardPage() {
           <div className="section-header"><h2>📚 Dokumentasi</h2></div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:12}}>
             {[
-              {href:'/api/docs', icon:'📖', label:'API Documentation', desc:'Swagger UI dengan semua endpoint'},
-              {href:'#', icon:'💻', label:'Code Examples', desc:'Contoh curl, JS, Python'},
-              {href:'https://ops.mighan.com', icon:'🎮', label:'Enter 3D World', desc:'Buka kantor virtual'},
+              {href:'https://mighan.com/api/docs', icon:'📖', label:'API Documentation', desc:'Swagger UI semua endpoint', external:true},
+              {href:'/profile', icon:'👤', label:'Profil Saya', desc:'Edit nama & info akun', external:false},
+              {href:'https://ops.mighan.com', icon:'🎮', label:'Enter 3D World', desc:'Buka kantor virtual Mighantect', external:true},
             ].map(l => (
-              <a key={l.label} href={l.href} style={{padding:16,background:'#0f0f14',borderRadius:10,textDecoration:'none',color:'#e8eaf0',border:'1px solid #2a2a3a'}}>
+              <a key={l.label} href={l.href} target={l.external ? '_blank' : undefined} rel={l.external ? 'noopener noreferrer' : undefined}
+                style={{padding:16,background:'#0f0f14',borderRadius:10,textDecoration:'none',color:'#e8eaf0',border:'1px solid #2a2a3a',display:'block'}}>
                 <div style={{fontWeight:600,marginBottom:4}}>{l.icon} {l.label}</div>
                 <div style={{fontSize:13,color:'#8b8fa3'}}>{l.desc}</div>
               </a>
