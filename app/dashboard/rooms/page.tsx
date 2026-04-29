@@ -298,7 +298,7 @@ export default function RoomsPage() {
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: 8 }}>
                   <a
-                    href={`https://ops.mighan.com?roomId=${room.id}`}
+                    href={`https://ops.mighan.com?roomId=${room.id}&token=${typeof window !== 'undefined' ? localStorage.getItem('mighan_user_token') || '' : ''}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
