@@ -25,8 +25,8 @@ export default function Sidebar() {
   const { user, loading, logout } = useAuth()
   const [produkOpen, setProdukOpen] = useState(false)
 
-  const initial = user ? (user.displayName || user.name || user.email || 'U').charAt(0).toUpperCase() : '?'
-  const displayName = user ? (user.displayName || user.name || user.email || 'User') : ''
+  const initial = user ? (user.displayName || user.email || 'U').charAt(0).toUpperCase() : '?'
+  const displayName = user ? (user.displayName || user.email || 'User') : ''
 
   return (
     <aside className="sidebar" id="sidebar">
