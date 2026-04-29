@@ -1,6 +1,7 @@
 import { AuthProvider } from '@/components/AuthProvider'
 import Sidebar from '@/components/Sidebar'
 import LandingScripts from '@/components/LandingScripts'
+import HeroWithWizard from '@/components/HeroWithWizard'
 
 export default function Home() {
   return (
@@ -30,38 +31,8 @@ export default function Home() {
             <div className="url-bar">mighantect.com</div>
           </div>
 
-          {/* HERO */}
-          <section id="hero" className="hero">
-            <div className="hero-copy">
-              <div className="hero-eyebrow">🚀 Beta — Free during preview</div>
-              <h1>Work in a<br />New Dimension</h1>
-              <p>Bangun kantor virtual sendiri. Isi dengan AI agent yang bekerja, belajar, dan menghasilkan — 24 jam non-stop.</p>
-              <div className="hero-btns">
-                <a href="/login" className="btn-primary">Bangun Duniamu →</a>
-                <a href="/playground" className="btn-secondary">🎮 Playground</a>
-              </div>
-              <div className="hero-stats">
-                <div><b>44+</b><span>AI Agents</span></div>
-                <div><b>30+</b><span>Skills</span></div>
-                <div><b>24/7</b><span>Autonomy</span></div>
-              </div>
-            </div>
-            <div className="hero-art" aria-hidden="true">
-              <div className="iso-scene">
-                <div className="tile t1" /><div className="tile t2" />
-                <div className="tile t3" /><div className="tile t4" />
-                <div className="iso-building b-main"><div className="face top" /><div className="face left" /><div className="face right" /><div className="window w1" /><div className="window w2" /></div>
-                <div className="iso-building b-lab"><div className="face top" /><div className="face left" /><div className="face right" /><div className="window w1" /></div>
-                <div className="iso-building b-lib"><div className="face top" /><div className="face left" /><div className="face right" /></div>
-                <div className="tree tr1"><div className="leaves" /><div className="trunk" /></div>
-                <div className="tree tr2"><div className="leaves" /><div className="trunk" /></div>
-                <div className="npc n1"><div className="head" /><div className="body" /></div>
-                <div className="npc n2"><div className="head" /><div className="body" /></div>
-                <div className="npc n3"><div className="head" /><div className="body" /></div>
-              </div>
-              <div className="iso-label">🏢 Your Virtual Office</div>
-            </div>
-          </section>
+          {/* HERO with Onboarding Wizard */}
+          <HeroWithWizard />
 
           {/* DEMO */}
           <section id="demo" className="block">
