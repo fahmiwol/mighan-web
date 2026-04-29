@@ -1,16 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getThemes, type ThemePreset } from '../lib/registry'
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? ''
-
-const THEMES = [
-  { id: 'modern', label: 'Modern Office', icon: '🏢', desc: 'Clean & professional' },
-  { id: 'cyberpunk', label: 'Cyberpunk', icon: '🌃', desc: 'Neon & futuristic' },
-  { id: 'corporate', label: 'Corporate', icon: '💼', desc: 'Executive style' },
-  { id: 'minimalist', label: 'Minimalist', icon: '📐', desc: 'Simple & zen' },
-  { id: 'fantasy', label: 'Fantasy', icon: '🏰', desc: 'Magical world' },
-]
 
 function getHeaders() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('mighan_user_token') : null
@@ -31,6 +24,11 @@ export default function CreateRoomModal({ onClose, onCreated, tier, limits, room
   const [theme, setTheme] = useState('modern')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [themes, setThemes] = useState<Record<string, ThemePreset>>({})
+
+  useEffect(() => {
+    getThemes().then(setThemes)
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -192,14 +190,14 @@ export default function CreateRoomModal({ onClose, onCreated, tier, limits, room
               Tema Room
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {THEMES.map(t => (
+              {Object.entries(themes).map(([id, t]) => (
                 <button
-                  key={t.id}
+                  key={id}
                   type="button"
-                  onClick={() => setTheme(t.id)}
+                  onClick={() => setTheme(id)}
                   style={{
-                    background: theme === t.id ? '#4f6af620' : '#0f0f14',
-                    border: theme === t.id ? '2px solid #4f6af6' : '1px solid #2a2a3a',
+                    background: theme === id ? '#4f6af620' : '#0f0f14',
+                    border: theme === id ? '2px solid #4f6af6' : '1px solid #2a2a3a',
                     borderRadius: 12,
                     padding: '12px 14px',
                     textAlign: 'left',
@@ -210,7 +208,7 @@ export default function CreateRoomModal({ onClose, onCreated, tier, limits, room
                 >
                   <div style={{ fontSize: 20, marginBottom: 4 }}>{t.icon}</div>
                   <div style={{ fontSize: 13, fontWeight: 600 }}>{t.label}</div>
-                  <div style={{ fontSize: 11, color: '#8b8fa3' }}>{t.desc}</div>
+                  <div style={{ fontSize: 11, color: '#8b8fa3' }}>{t.description}</div>
                 </button>
               ))}
             </div>
