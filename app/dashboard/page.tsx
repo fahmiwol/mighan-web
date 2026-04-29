@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '../../components/AuthProvider'
+import PortalNav from '../../components/PortalNav'
 import '../(auth)/portal.css'
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? ''
