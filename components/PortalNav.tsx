@@ -7,7 +7,8 @@ import { useAuth } from './AuthProvider'
 const nav = [
   { href: '/dashboard', label: '📊 Dashboard' },
   { href: '/dashboard/rooms', label: '🏠 My Rooms' },
-  { href: '/dashboard/wallet', label: '💳 Upgrade' },
+  { href: '/dashboard/marketplace', label: '🛒 Marketplace' },
+  { href: '/dashboard/wallet', label: '💳 Wallet' },
   { href: '/profile', label: '👤 Profil' },
 ]
 
@@ -60,9 +61,9 @@ export default function PortalNav() {
               fontSize: 14,
               fontWeight: 600,
               textDecoration: 'none',
-              color: pathname === n.href ? '#e8eaf0' : '#8b8fa3',
-              background: pathname === n.href ? '#1a1a24' : 'transparent',
-              border: pathname === n.href ? '1px solid #2a2a3a' : '1px solid transparent',
+              color: pathname?.startsWith(n.href) && (n.href !== '/dashboard' || pathname === '/dashboard') ? '#e8eaf0' : '#8b8fa3',
+              background: pathname?.startsWith(n.href) && (n.href !== '/dashboard' || pathname === '/dashboard') ? '#1a1a24' : 'transparent',
+              border: pathname?.startsWith(n.href) && (n.href !== '/dashboard' || pathname === '/dashboard') ? '1px solid #2a2a3a' : '1px solid transparent',
               transition: 'all .15s',
             }}
           >
