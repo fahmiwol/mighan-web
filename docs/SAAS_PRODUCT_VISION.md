@@ -247,11 +247,13 @@ mighan.com/login → Dashboard → List Rooms → Klik Room → room.mighan.com/
 | Halaman | Status | Deskripsi |
 |---------|--------|-----------|
 | `/playground` | 🔧 Upgrade | Sandbox interaktif full-featured, no auth |
-| `/dashboard/rooms` | ✅ Ada (basic) | Perlu: detail room, invite, share link |
-| `/dashboard/rooms/{id}` | ❌ Belum | Room management: NPC list, object list, settings, roles |
-| `/marketplace` | ❌ Belum | Browse + beli NPC, object, skill |
-| `/dashboard/wallet` | ✅ Ada (stub) | Perlu: real Ixonomic connect, balance, history |
-| `room.mighan.com/{id}` | ❌ Belum | Subdomain routing ke 3D engine |
+| `/dashboard` | ✅ **Sprint 2 DONE** | Product dashboard: rooms grid, onboarding empty state, quick stats, IX balance, developer section collapsible |
+| `/dashboard/rooms` | ✅ **Sprint 2 DONE** | Rooms list + create room |
+| `/dashboard/rooms/{id}` | ✅ **Sprint 2 DONE** | Room management: NPCs tab, objects tab, settings, share |
+| `/dashboard/marketplace` | ✅ **Sprint 2 DONE** | Browse 13 NPC + 15 objects, hire, search, category filter |
+| `/dashboard/wallet` | ✅ **Sprint 2 DONE** | IX balance, top-up, transaction history, plans tabs |
+| `/room/[roomId]` | ✅ **Sprint 2 DONE** | Room overview (2D) + 3D iframe view (ops.mighan.com) |
+| `room.mighan.com/{id}` | ❌ Belum | Nginx wildcard subdomain routing ke /room/[roomId] |
 
 ### Priority 2 — Growth
 
@@ -276,27 +278,30 @@ mighan.com/login → Dashboard → List Rooms → Klik Room → room.mighan.com/
 
 ## 🔧 BACKEND API YANG PERLU ADA
 
-### Sudah ada (gateway):
+### Sudah ada (gateway) — Sprint 2:
 - `/api/v1/rooms` CRUD ✅
+- `/api/v1/rooms/{id}/state` GET (full room state untuk 3D render) ✅
+- `/api/v1/rooms/{id}/npcs` POST/DELETE/PATCH ✅
+- `/api/v1/rooms/{id}/objects` POST/DELETE ✅
 - `/api/v1/assets/registry` (themes, NPC templates) ✅
 - `/api/v1/auth/*` ✅
+- `/api/v1/marketplace/npcs` GET (13 NPC dari global-registry.json) ✅
+- `/api/v1/marketplace/objects` GET (15 objects dari global-registry.json) ✅
+- `/api/v1/wallet/balance` GET (Ixonomic connector) ✅
+- `/api/v1/wallet/history` GET (Transaction table) ✅
+- `/api/v1/wallet/topup` POST (via Ixonomic connector) ✅
 
-### Perlu ditambah ke gateway:
+### Masih perlu ditambah:
 ```
-/api/v1/rooms/{id}/npcs          GET/POST/DELETE
-/api/v1/rooms/{id}/objects        GET/POST/DELETE  
 /api/v1/rooms/{id}/roles          GET/POST/PUT/DELETE
-/api/v1/rooms/{id}/settings       GET/PUT
+/api/v1/rooms/{id}/settings       GET/PUT (sudah ada via rooms PUT)
 /api/v1/rooms/{id}/workflows      GET/POST
 
-/api/v1/marketplace/npcs          GET (catalog)
-/api/v1/marketplace/objects       GET (catalog)
 /api/v1/marketplace/skills        GET (catalog)
-/api/v1/marketplace/purchase      POST
+/api/v1/marketplace/purchase      POST (payment flow)
 
-/api/v1/wallet/balance            GET (from Ixonomic API)
 /api/v1/wallet/connect            POST (store Ixonomic API key)
-/api/v1/wallet/transactions       GET
+/api/v1/wallet/transactions       GET (alias untuk /history)
 /api/v1/wallet/pay                POST (debit for room/NPC/object)
 
 /api/v1/user/inventory            GET (all NPC + object owned user)
