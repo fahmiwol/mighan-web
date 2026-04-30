@@ -301,9 +301,7 @@ export default function RoomsPage() {
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: 8 }}>
                   <a
-                    href={`https://ops.mighan.com?roomId=${room.id}&token=${authToken}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href={`/room/${room.id}`}
                     style={{
                       flex: 1,
                       background: 'var(--primary)',
