@@ -3,6 +3,9 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from './AuthProvider'
+import { useEffect, useState } from 'react'
+
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://mighan.com'
 
 const nav = [
   { href: '/dashboard', label: '📊 Dashboard' },
@@ -15,9 +18,23 @@ const nav = [
 export default function PortalNav() {
   const pathname = usePathname()
   const { user, logout } = useAuth()
+  const [ixBalance, setIxBalance] = useState<number | null>(null)
 
   const initial = user ? (user.displayName || user.email || 'U').charAt(0).toUpperCase() : 'U'
-  const name = user?.displayName || user?.email || 'User'
+
+  useEffect(() => {
+    const t = localStorage.getItem('mighan_user_token')
+    if (!t) return
+    fetch(`${API}/api/v1/wallet/balance`, { headers: { Authorization: `Bearer ${t}` } })
+      .then(r => r.json())
+      .then(d => { if (d.ok && d.balance) setIxBalance(d.balance.ixc ?? 0) })
+      .catch(() => {})
+  }, [])
+
+  function fmtIx(n: number) {
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'k'
+    return n.toString()
+  }
 
   return (
     <nav style={{
@@ -32,7 +49,7 @@ export default function PortalNav() {
       top: 0,
       zIndex: 50,
     }}>
-      {/* Left: Logo + Brand */}
+      {/* Left: Logo + Nav */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
           <div style={{
@@ -72,8 +89,28 @@ export default function PortalNav() {
         ))}
       </div>
 
-      {/* Right: User + Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+      {/* Right: IX Balance + User + Actions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+
+        {/* IX Balance pill */}
+        {ixBalance !== null && (
+          <Link href="/dashboard/wallet" style={{ textDecoration: 'none' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '5px 12px', borderRadius: 20,
+              background: '#1a1a28', border: '1px solid #c8b6ff33',
+              cursor: 'pointer', transition: 'border-color .15s',
+            }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = '#c8b6ff88')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = '#c8b6ff33')}
+            >
+              <span style={{ fontSize: 13, color: '#c8b6ff' }}>◈</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#c8b6ff' }}>{fmtIx(ixBalance)}</span>
+              <span style={{ fontSize: 11, color: '#8b8fa3' }}>IX</span>
+            </div>
+          </Link>
+        )}
+
         <a
           href="https://ops.mighan.com"
           target="_blank"
@@ -89,17 +126,19 @@ export default function PortalNav() {
             textDecoration: 'none',
           }}
         >
-          🎮 Enter 3D World
+          🎮 3D World
         </a>
 
-        <div style={{
-          width: 32, height: 32, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #4f6af6, #8b5cf6)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 13, fontWeight: 700, color: '#fff',
-        }}>
-          {initial}
-        </div>
+        <Link href="/profile" style={{ textDecoration: 'none' }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #4f6af6, #8b5cf6)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer',
+          }}>
+            {initial}
+          </div>
+        </Link>
 
         <button
           onClick={logout}
