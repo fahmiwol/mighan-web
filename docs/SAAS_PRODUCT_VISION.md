@@ -473,18 +473,60 @@ user_inventory: userId, itemId, purchasedAt
 
 ## 📝 HANDOFF NOTES UNTUK AGENT BERIKUTNYA
 
-**Baca dulu:** `docs/AGENT_CONTINUITY.md` → current focus.
+**Baca dulu:** `docs/AGENT_CONTINUITY.md` → current focus (updated per sesi).
 
-**Prioritas eksekusi Sprint 1:**
-1. Nginx wildcard `*.mighan.com` → aaPanel tambah wildcard record
-2. Next.js `app/room/[roomId]/page.tsx` → embed ops engine
-3. Gateway: `GET /api/v1/rooms/:id/state` → return full room state (theme + NPCs + objects)
-4. Onboarding wizard: upgrade step 3 ke Ixonomic connect (mock dulu, real nanti Sprint 3)
-5. `/dashboard/rooms/{id}` — room management page
+---
 
-**Jangan mulai Sprint 2 sebelum room.mighan.com/{id} bisa dibuka di browser.**
+### STATUS SPRINT 1 (update 2026-04-30)
 
-**Design rules (tetap berlaku):**
-- `app/page.tsx`, `components/Sidebar.tsx`, `app/globals.css` → TERKUNCI
-- Setiap UI baru → dark theme (#0f0f14 bg, portal.css pattern)
+| Task | Status | Notes |
+|------|--------|-------|
+| `docs/SAAS_PRODUCT_VISION.md` | ✅ Done | Committed + pushed |
+| `app/room/[roomId]/page.tsx` | ✅ Done | 2D overview + 3D iframe mode, graceful fallback |
+| `GET /api/v1/rooms/:id/state` | ✅ Done | Sudah ada di `server/routes/room.js` |
+| Rooms page → internal `/room/{id}` | ✅ Done | Tidak lagi langsung ke ops.mighan.com |
+| Deploy VPS PM2 id 25 | ✅ Done | Online, 0 crash cycle |
+| Nginx wildcard `room.mighan.com` | 🔧 Pending | Perlu aaPanel + DNS record |
+| `ops.mighan.com/room-viewer` page | 🔧 Pending | DNS ke Cloudflare — origin unknown |
+| `/dashboard/rooms/{id}` management | 🔧 Pending | Sprint 2 |
+| Onboarding wizard 4-step | 🔧 Pending | Sprint 2 |
+| Ixonomic wallet connect | 🔧 Pending | Sprint 3 |
+
+---
+
+### ARSITEKTUR FINAL (dikonfirmasi Fahmi 2026-04-30)
+
+```
+ops.mighan.com       = Global engine inventory (Three.js + all assets)
+                       ADMIN-ONLY direct access (Fahmi + dev)
+                       Serve /room-viewer?roomId=X&token=Y&mode=user
+                       untuk iframe dari Next.js room page
+
+room.mighan.com/{id} = Next.js /room/[roomId] page
+                       → Auth check (JWT localStorage)
+                       → Fetch room state: GET /api/v1/rooms/{id}/state
+                       → 2D Overview tab (NPC list, objects, slot bars)
+                       → 3D World tab → iframe ke ops.mighan.com/room-viewer
+                       → Graceful fallback jika iframe gagal
+
+mighan.com           = SaaS portal (landing, auth, dashboard)
+ixonomic.com         = Wallet coin system (external)
+```
+
+### PRIORITAS SPRINT 2 (belum dikerjakan)
+
+1. **`ops.mighan.com/room-viewer`** — buat halaman HTML standalone yang load Three.js engine dalam user mode. Terima `?roomId=X&token=Y&mode=user`, fetch room state dari gateway, render 3D room tanpa admin panels. File: `web-mighan/room-viewer.html` di Mighan-3D project, lalu deploy ke ops.mighan.com.
+2. **Nginx wildcard** — tambah `*.mighan.com` DNS + nginx config sehingga `room.mighan.com` → Next.js.
+3. **`/dashboard/rooms/{id}`** — room management detail page: edit theme, manage NPCs, manage objects, share link.
+4. **Marketplace stub** — `/dashboard/marketplace` page: catalog NPC + object templates (mock data dulu).
+5. **Onboarding wizard upgrade** — 4 step fullscreen: choose room type → name room → connect wallet → enter room.
+
+### JANGAN MULAI SPRINT 3 sebelum:
+- room.mighan.com/{id} bisa dibuka di browser dan tampilkan room info
+- NPC dan object bisa ditambah ke room via dashboard
+
+### Design rules (TETAP berlaku):
+- `app/page.tsx`, `components/Sidebar.tsx`, `app/globals.css` → TERKUNCI (sidebar putih landing page)
+- Setiap UI baru portal/dashboard → dark theme (#0d0d1a bg)
+- `localStorage` HANYA dalam `useEffect` atau event handler — tidak pernah di render/module level
 - getHeaders() selalu di dalam component body, bukan module level
