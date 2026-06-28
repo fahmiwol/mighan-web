@@ -67,7 +67,7 @@ export default function HeroWithWizard() {
             }}
           >
             <iframe
-              src="/world-lite/city-hero.html?embed=1"
+              src="/world-lite/city-hero.html?embed=2&v=chibi"
               title="Mighan World — live 3D"
               loading="lazy"
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0, display: 'block' }}
