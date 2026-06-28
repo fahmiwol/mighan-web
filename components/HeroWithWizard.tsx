@@ -52,20 +52,28 @@ export default function HeroWithWizard() {
             <div><b>24/7</b><span>Autonomy</span></div>
           </div>
         </div>
-        <div className="hero-art" aria-hidden="true">
-          <div className="iso-scene">
-            <div className="tile t1" /><div className="tile t2" />
-            <div className="tile t3" /><div className="tile t4" />
-            <div className="iso-building b-main"><div className="face top" /><div className="face left" /><div className="face right" /><div className="window w1" /><div className="window w2" /></div>
-            <div className="iso-building b-lab"><div className="face top" /><div className="face left" /><div className="face right" /><div className="window w1" /></div>
-            <div className="iso-building b-lib"><div className="face top" /><div className="face left" /><div className="face right" /></div>
-            <div className="tree tr1"><div className="leaves" /><div className="trunk" /></div>
-            <div className="tree tr2"><div className="leaves" /><div className="trunk" /></div>
-            <div className="npc n1"><div className="head" /><div className="body" /></div>
-            <div className="npc n2"><div className="head" /><div className="body" /></div>
-            <div className="npc n3"><div className="head" /><div className="body" /></div>
+        <div className="hero-art">
+          <div
+            style={{
+              position: 'relative',
+              width: '100%',
+              aspectRatio: '1 / 1',
+              maxWidth: 520,
+              margin: '0 auto',
+              borderRadius: 22,
+              overflow: 'hidden',
+              background: 'radial-gradient(circle at 50% 38%, #141a3a 0%, #08081a 70%)',
+              boxShadow: '0 20px 60px rgba(0,0,0,.45)',
+            }}
+          >
+            <iframe
+              src="/world-lite/city-hero.html?embed=1"
+              title="Mighan World — live 3D"
+              loading="lazy"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0, display: 'block' }}
+            />
           </div>
-          <div className="iso-label">🏢 Your Virtual Office</div>
+          <div className="iso-label">🏢 Your Virtual Office — live 3D</div>
         </div>
       </section>
 
