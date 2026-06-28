@@ -62,12 +62,12 @@ export default function HeroWithWizard() {
               margin: '0 auto',
               borderRadius: 22,
               overflow: 'hidden',
-              background: 'radial-gradient(circle at 50% 38%, #141a3a 0%, #08081a 70%)',
-              boxShadow: '0 20px 60px rgba(0,0,0,.45)',
+              background: 'transparent',
+              boxShadow: 'none',
             }}
           >
             <iframe
-              src="/world-lite/city-hero.html?embed=2&v=chibi"
+              src="/world-lite/city-hero.html?embed=3&v=bright"
               title="Mighan World — live 3D"
               loading="lazy"
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0, display: 'block' }}
