@@ -320,8 +320,8 @@ export default function Home() {
                 { href: 'https://ops.mighan.com/design-studio/remove-bg.html', ico: '✂️', label: 'Remove Background', desc: 'Hapus background otomatis untuk asset microstock' },
                 { href: 'https://ops.mighan.com/design-studio/photo.html', ico: '📸', label: 'Photo AI', desc: 'Enhance, upscale, dan retouch foto dengan AI' },
                 { href: 'https://ops.mighan.com/design-studio/ai.html', ico: '🤖', label: 'AI Chat', desc: 'Chat langsung dengan agen AI Mighantect' },
-                { href: 'https://ops.mighan.com/admin-panel/', ico: '🏢', label: 'World Builder', desc: 'Atur gedung, ruangan, dan posisi object 3D' },
-                { href: 'https://ops.mighan.com/admin-panel/', ico: '📋', label: 'SOP Builder', desc: 'Buat & kelola workflow SOP agen AI' },
+                { href: '/playground', ico: '🏢', label: 'World Builder', desc: 'Atur gedung, ruangan, object 3D — coba tanpa login' },
+                { href: '/register', ico: '📋', label: 'SOP Builder', desc: 'Buat & kelola workflow SOP agen AI — daftar untuk akses' },
                 { href: 'https://ops.mighan.com/design-studio/index.html', ico: '🚀', label: 'Semua Tools', desc: 'Lihat semua tool di Design Studio' },
               ].map(t => (
                 <a key={t.label} className="tool-card" href={t.href} target="_blank" rel="noopener noreferrer">

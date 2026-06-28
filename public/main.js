@@ -271,18 +271,51 @@ function renderAgents() {
 }
 
 // ============ RENDER SKILLS ============
+const CAT_DESC = {
+  agent: 'Otak AI — hire agent ini ke world-mu, beri kepribadian + skill, biarkan kerja 24/7.',
+  media: 'Tool media generatif — bikin gambar, video, suara, atau 3D langsung dari prompt.',
+  workflow: 'Otomasi — rangkai SOP, jadwal, dan autopilot supaya agent jalan sendiri.',
+  api: 'Integrasi developer — hubungkan world-mu lewat REST, SSE, atau multi-LLM.',
+  connect: 'Konektor — sambungkan ke WhatsApp, sosial media, dan microstock.'
+};
 function renderSkills(filter = 'all') {
   const grid = document.getElementById('skillGrid');
   if (!grid) return;
   const list = filter === 'all' ? SKILLS : SKILLS.filter(s => s.cat === filter);
   grid.innerHTML = list.map(s => `
-    <div class="skill-card">
+    <div class="skill-card" role="button" tabindex="0" style="cursor:pointer" data-name="${s.name}" data-cat="${s.cat}" data-icon="${s.icon}" data-color="${s.color}">
       ${s.badge ? `<span class="badge ${s.badge.toLowerCase()}">${s.badge}</span>` : ''}
       <div class="skill-ico" style="background:${s.color}">${s.icon}</div>
       <h4>${s.name}</h4>
       <div class="cat">${s.cat}</div>
     </div>
   `).join('');
+  grid.querySelectorAll('.skill-card').forEach(c => {
+    const open = () => openSkillModal(c.dataset);
+    c.addEventListener('click', open);
+    c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  });
+}
+function openSkillModal(d) {
+  let m = document.getElementById('skillModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'skillModal';
+    m.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(10,12,30,.55);backdrop-filter:blur(3px)';
+    m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
+    document.body.appendChild(m);
+  }
+  const cat = d.cat || 'agent';
+  m.innerHTML = '<div style="background:#fff;border-radius:18px;max-width:360px;width:90%;padding:26px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center;font-family:inherit">'
+    + '<div style="width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 14px;background:' + (d.color || '#eee') + '">' + (d.icon || '🧩') + '</div>'
+    + '<h3 style="margin:0 0 4px;font-size:20px;font-weight:800;color:#1a1630">' + (d.name || '') + '</h3>'
+    + '<div style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:#8a7fb0;margin-bottom:12px">' + cat + '</div>'
+    + '<p style="font-size:14px;color:#4a4660;line-height:1.5;margin-bottom:20px">' + (CAT_DESC[cat] || '') + '</p>'
+    + '<a href="/register" style="display:inline-block;background:linear-gradient(90deg,#7c5cff,#22d3a6);color:#fff;text-decoration:none;font-weight:800;padding:12px 22px;border-radius:12px">Daftar untuk pakai →</a>'
+    + '<div style="margin-top:12px"><button id="skillModalClose" style="background:none;border:none;color:#9a93b5;font-size:13px;cursor:pointer">Tutup</button></div>'
+    + '</div>';
+  m.style.display = 'flex';
+  const cb = document.getElementById('skillModalClose'); if (cb) cb.onclick = () => { m.style.display = 'none'; };
 }
 
 // ============ FILTER CHIPS ============

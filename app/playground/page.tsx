@@ -3,76 +3,51 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+// Empty 3D sandbox (no login) — embeds the world-lite builder (drag-drop tiles/objects/buildings).
+// Layout uses inline styles (not Tailwind) so the iframe always fills the viewport.
 export default function PlaygroundPage() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    // Simulate loading for UX
-    const timer = setTimeout(() => setIsLoading(false), 1500);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => setIsLoading(false), 1600);
+    return () => clearTimeout(t);
   }, []);
 
   return (
-    <div className="relative w-full h-screen bg-[#07080f] overflow-hidden">
-      {/* Loading overlay */}
+    <div style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', overflow: 'hidden', background: '#0b1020' }}>
       {isLoading && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#07080f]">
-          <div className="text-4xl mb-4">🎮</div>
-          <h1 className="text-2xl font-bold text-[#00f5ff] mb-2">Mighantect Playground</h1>
-          <p className="text-slate-400 text-sm mb-6">Loading 3D world...</p>
-          <div className="w-48 h-1 bg-slate-800 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-[#00f5ff] to-[#06b6d4] animate-pulse rounded-full" style={{ width: '80%' }} />
-          </div>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 50, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0b1020' }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>🎮</div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#7cc8ff', margin: 0 }}>Mighan Playground</h1>
+          <p style={{ color: '#9fb0d8', fontSize: 13, marginTop: 6 }}>Memuat sandbox 3D…</p>
         </div>
       )}
 
-      {/* Playground iframe */}
       <iframe
-        src="https://ops.mighan.com/playground"
-        className={`w-full h-full border-0 transition-opacity duration-500 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-        title="Mighantect 3D Playground"
+        src="/world-lite/builder.html"
+        title="Mighan Sandbox 3D"
         allow="fullscreen"
-        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0, display: 'block', opacity: isLoading ? 0 : 1, transition: 'opacity .5s' }}
       />
 
-      {/* Top overlay bar */}
       {!isLoading && (
-        <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-2 bg-gradient-to-r from-[#07080f]/90 to-[#07080f]/70 backdrop-blur-sm border-b border-[#00f5ff]/20">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">🎮</span>
-            <span className="text-sm font-semibold text-[#00f5ff]">Playground</span>
-            <span className="text-xs text-slate-400 hidden sm:inline">— Coba Mighantect 3D tanpa login</span>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 40, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', background: 'linear-gradient(90deg,rgba(11,16,32,.92),rgba(11,16,32,.55))', backdropFilter: 'blur(6px)', borderBottom: '1px solid rgba(124,160,255,.25)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#cfe0ff', fontSize: 13, fontWeight: 700 }}>
+            <span>🎮</span><span>Playground</span>
+            <span style={{ color: '#8595c0', fontWeight: 400 }} className="hide-sm">— bangun dunia 3D-mu, tanpa login</span>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => router.push('/register')}
-              className="px-3 py-1.5 text-xs font-semibold bg-[#00f5ff] text-[#07080f] rounded hover:bg-[#00d4e0] transition-colors"
-            >
-              🚀 Sign Up Free
-            </button>
-            <button
-              onClick={() => router.push('/login')}
-              className="px-3 py-1.5 text-xs font-semibold border border-[#00f5ff]/40 text-[#00f5ff] rounded hover:bg-[#00f5ff]/10 transition-colors"
-            >
-              Login
-            </button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={() => router.push('/register')} style={{ padding: '7px 14px', fontSize: 12, fontWeight: 800, background: 'linear-gradient(90deg,#7c5cff,#22d3a6)', color: '#fff', border: 0, borderRadius: 9, cursor: 'pointer' }}>🚀 Daftar Gratis</button>
+            <button onClick={() => router.push('/login')} style={{ padding: '7px 14px', fontSize: 12, fontWeight: 700, background: 'transparent', color: '#cfe0ff', border: '1px solid rgba(124,160,255,.4)', borderRadius: 9, cursor: 'pointer' }}>Login</button>
           </div>
         </div>
       )}
 
-      {/* Bottom CTA */}
       {!isLoading && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40">
-          <div className="flex items-center gap-3 px-5 py-2.5 bg-[#07080f]/90 backdrop-blur-sm border border-[#00f5ff]/30 rounded-full">
-            <span className="text-sm text-slate-300">💡 Suka pengalaman ini?</span>
-            <button
-              onClick={() => router.push('/register')}
-              className="px-4 py-1.5 text-sm font-bold bg-gradient-to-r from-[#00f5ff] to-[#06b6d4] text-[#07080f] rounded-full hover:shadow-[0_0_15px_rgba(0,245,255,0.4)] transition-all"
-            >
-              Buat World Kamu →
-            </button>
-          </div>
+        <div style={{ position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 40, display: 'flex', alignItems: 'center', gap: 12, padding: '10px 18px', background: 'rgba(11,16,32,.9)', backdropFilter: 'blur(6px)', border: '1px solid rgba(124,160,255,.3)', borderRadius: 999, color: '#dbe4ff', fontSize: 13, whiteSpace: 'nowrap' }}>
+          <span>💡 Suka? Simpan dunia ini —</span>
+          <button onClick={() => router.push('/register')} style={{ padding: '7px 16px', fontSize: 13, fontWeight: 800, background: 'linear-gradient(90deg,#7c5cff,#22d3a6)', color: '#fff', border: 0, borderRadius: 999, cursor: 'pointer' }}>Buat World Kamu →</button>
         </div>
       )}
     </div>
