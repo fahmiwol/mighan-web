@@ -594,7 +594,7 @@ function applyReducedMotion() {
 }
 
 // ============ BOOT ============
-document.addEventListener('DOMContentLoaded', () => {
+function __mighanBoot() {
   renderAgents();
   renderSkills();
   wireFilter();
@@ -605,4 +605,9 @@ document.addEventListener('DOMContentLoaded', () => {
   wireCards();
   wireAgentModal();
   applyReducedMotion();
-});
+}
+// Boot saat DOM siap. PENTING: kalau script di-inject Next.js SETELAH load
+// (LandingScripts useEffect), event DOMContentLoaded sudah lewat → boot langsung,
+// kalau tidak grid agent (#idCardRow) + modal tak pernah ke-render.
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', __mighanBoot);
+else __mighanBoot();
