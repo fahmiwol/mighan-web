@@ -481,6 +481,17 @@ function openAgentModal(a) {
 
   modal.querySelector('.am-hero-img').src = `assets/agents/${a.id}.png`;
   modal.querySelector('.am-hero-img').alt = a.name;
+  // ── 3D orbitable avatar in the detail (replaces the 2D portrait) ──
+  modal.dataset.agentId = a.id;
+  try {
+    const _hi = modal.querySelector('.am-hero-img'); const _hero = _hi && _hi.parentElement;
+    if (_hero) {
+      let _f = _hero.querySelector('.am-3d');
+      if (!_f) { _f = document.createElement('iframe'); _f.className = 'am-3d'; _f.title = '3D Avatar'; _f.loading = 'lazy'; _f.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;z-index:3;background:transparent'; _hero.appendChild(_f); }
+      _f.src = '/world-lite/avatar-studio.html?embed=1&id=' + encodeURIComponent(a.id) + '&shirt=' + ((a.accent || '#7c3aed').replace('#', ''));
+      _hi.style.display = 'none';
+    }
+  } catch (e) {}
   modal.querySelector('.am-name h1').textContent = a.name;
   modal.querySelector('.am-role').textContent = a.role;
   modal.querySelector('.am-rarity-value').textContent = a.rarity;
@@ -591,7 +602,8 @@ function wireAgentModal() {
       return;
     }
     if (e.target.closest('.am-btn-customize')) {
-      alert('Customize avatar (demo) — edit wajah, warna, outfit.');
+      const _aid = modal.dataset.agentId || '';
+      window.open('/world-lite/avatar-studio.html?id=' + encodeURIComponent(_aid), '_blank');
       return;
     }
     // Click outside slot → hide tooltip
