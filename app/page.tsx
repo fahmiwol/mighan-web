@@ -104,7 +104,7 @@ export default function Home() {
           <section id="agents" className="block">
             <div className="block-head">
               <div><span className="section-tag">Template · Meet the Agents</span><h2>Pilih Timmu</h2></div>
-              <a href="#" className="see-all">All 44 agents →</a>
+              <a href="#agents" className="see-all">All 44 agents →</a>
             </div>
             <div className="id-card-row" id="idCardRow" />
           </section>
@@ -235,7 +235,7 @@ export default function Home() {
                 </ul>
                 <div className="coin-footer">
                   <div className="coin-price"><b>1 Gold ≈ Rp 100</b><small>Top-up: bank, e-wallet, kartu</small></div>
-                  <a href="#" className="btn-chip">Top up Gold →</a>
+                  <a href="/dashboard/wallet" className="btn-chip">Top up Gold →</a>
                 </div>
               </article>
               <article className="coin-big c-silver">
@@ -249,7 +249,7 @@ export default function Home() {
                 </ul>
                 <div className="coin-footer">
                   <div className="coin-price"><b>Auto-convert dari Gold</b><small>1 Gold = 10 Silver saat dibutuhkan</small></div>
-                  <a href="#" className="btn-chip">Lihat Ledger →</a>
+                  <a href="/dashboard/wallet" className="btn-chip">Lihat Ledger →</a>
                 </div>
               </article>
             </div>

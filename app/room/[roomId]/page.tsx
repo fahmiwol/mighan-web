@@ -183,7 +183,7 @@ export default function RoomViewerPage() {
                     ))}
                   </div>
                 )}
-                <button style={{ marginTop: 14, width: '100%', background: `${accent}22`, color: accent, border: `1px solid ${accent}44`, padding: '8px 0', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600 }}>
+                <button onClick={() => router.push(`/dashboard/rooms/${roomId}`)} style={{ marginTop: 14, width: '100%', background: `${accent}22`, color: accent, border: `1px solid ${accent}44`, padding: '8px 0', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600 }}>
                   + Hire NPC
                 </button>
               </div>
@@ -209,7 +209,7 @@ export default function RoomViewerPage() {
                     ))}
                   </div>
                 )}
-                <button style={{ marginTop: 14, width: '100%', background: '#8b5cf622', color: '#8b5cf6', border: '1px solid #8b5cf644', padding: '8px 0', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600 }}>
+                <button onClick={() => router.push(`/dashboard/rooms/${roomId}`)} style={{ marginTop: 14, width: '100%', background: '#8b5cf622', color: '#8b5cf6', border: '1px solid #8b5cf644', padding: '8px 0', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600 }}>
                   + Add Object
                 </button>
               </div>
