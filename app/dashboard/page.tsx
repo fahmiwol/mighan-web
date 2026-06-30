@@ -257,6 +257,7 @@ export default function DashboardPage() {
             { href: '/dashboard/rooms', icon: '🏠', label: 'My Rooms', desc: 'Kelola semua room-mu', external: false },
             { href: '/dashboard/marketplace', icon: '🛒', label: 'Marketplace', desc: 'Hire NPC, beli objects', external: false },
             { href: '/dashboard/wallet', icon: '💳', label: 'Wallet & Plans', desc: 'Top-up IX, upgrade plan', external: false },
+            { href: '/dashboard/settings', icon: '⚙️', label: 'Provider Hub', desc: 'Pasang API key sendiri (BYO)', external: false },
             { href: 'https://ops.mighan.com', icon: '🎮', label: '3D World', desc: 'Enter kantor virtual', external: true },
           ].map(l => (
             <a key={l.label} href={l.href} target={l.external ? '_blank' : undefined} rel={l.external ? 'noopener noreferrer' : undefined}
