@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'https://mighan.com'
@@ -43,6 +43,7 @@ export default function RoomViewerPage() {
   const [error, setError] = useState('')
   const [view, setView] = useState<'dashboard' | '3d'>('dashboard')
   const [iframeError, setIframeError] = useState(false)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
 
   function getHeaders(t: string) {
     return { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` }
@@ -70,8 +71,9 @@ export default function RoomViewerPage() {
 
   const bg = roomState ? (THEME_BG[roomState.room.theme] || '#0d0d1a') : '#0d0d1a'
   const accent = roomState ? (THEME_ACCENT[roomState.room.theme] || '#4f6af6') : '#4f6af6'
+  // Token excluded from URL to prevent Referer leak — sent via postMessage after load
   const iframeUrl = token && roomId
-    ? `${OPS_URL}/room-viewer?roomId=${encodeURIComponent(roomId)}&token=${encodeURIComponent(token)}&mode=user`
+    ? `${OPS_URL}/room-viewer?roomId=${encodeURIComponent(roomId)}&mode=user`
     : ''
 
   if (loading) return (
@@ -233,14 +235,20 @@ export default function RoomViewerPage() {
               </div>
             ) : (
               <iframe
+                ref={iframeRef}
                 src={iframeUrl}
                 onError={() => setIframeError(true)}
                 onLoad={(e) => {
                   // If iframe loaded a 404/error page, show fallback
                   try {
                     const iframe = e.currentTarget as HTMLIFrameElement
-                    if (iframe.contentDocument?.title?.includes('404')) setIframeError(true)
+                    if (iframe.contentDocument?.title?.includes('404')) { setIframeError(true); return }
                   } catch { /* cross-origin — assume loaded ok */ }
+                  // Send auth token via postMessage instead of URL param (prevents Referer leak)
+                  iframeRef.current?.contentWindow?.postMessage(
+                    { type: 'mighan:auth', token },
+                    OPS_URL
+                  )
                 }}
                 style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
                 allow="camera; microphone; clipboard-write"
