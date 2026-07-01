@@ -1,5 +1,7 @@
 # Agent continuity log — Mighantect 3D
 
+> 🗺️ **Read `docs/ECOSYSTEM_ROADMAP.md` in the `C:\Mighan-3D` repo FIRST** (Cluster 2 = this storefront) — the whole-ecosystem map + clustered backlog, so this repo's work stays anchored to the bigger picture across sessions.
+
 **Tujuan:** Satu file *living* untuk handoff antar AI agent (Claude, Cursor, OpenCode, Jules, dll.) dan manusia.  
 **Pemilik konteks produk:** Fahmi — **Claude** diposisikan sebagai CTO/agent utama; saat limit usage, kerja dilanjutkan agent lain **asal file ini di-update.**
 
