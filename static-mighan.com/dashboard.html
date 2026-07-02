@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Mighantect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/css/portal.css">
+</head>
+<body>
+<div class="portal-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div>
+      <h1>📊 Dashboard</h1>
+      <p style="color:var(--text-muted);font-size:14px;margin-top:4px">Kelola API keys dan monitor penggunaan</p>
+    </div>
+    <div class="user-info">
+      <div class="user-avatar" id="userAvatar">U</div>
+      <div>
+        <div class="user-name" id="userName">Loading...</div>
+        <span class="user-tier" id="userTier">free</span>
+      </div>
+      <button class="btn-sm" onclick="logout()" style="margin-left:12px;background:var(--bg-hover);color:var(--text)">Keluar</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="label">API Calls Bulan Ini</div>
+      <div class="value" id="statCalls">0</div>
+      <div class="change">dari <span id="statLimit">500</span> limit</div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="usageBar" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="label">API Keys Aktif</div>
+      <div class="value" id="statKeys">0</div>
+      <div class="change">keys yang aktif</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Subscription</div>
+      <div class="value" id="statTier" style="font-size:20px">Free</div>
+      <div class="change"><a href="#" style="color:var(--primary)">Upgrade →</a></div>
+    </div>
+  </div>
+
+  <!-- API Keys Section -->
+  <div class="section">
+    <div class="section-header">
+      <h2>🔑 API Keys</h2>
+      <button class="btn-sm" onclick="showCreateKey()" style="background:var(--primary);color:white">+ Buat Key Baru</button>
+    </div>
+    <div class="key-list" id="keyList">
+      <p style="color:var(--text-muted);text-align:center;padding:20px">Memuat...</p>
+    </div>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="section">
+    <div class="section-header">
+      <h2>📚 Dokumentasi</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+      <a href="/api/docs" target="_blank" style="padding:16px;background:var(--bg);border-radius:10px;text-decoration:none;color:var(--text);border:1px solid var(--border)">
+        <div style="font-weight:600;margin-bottom:4px">📖 API Documentation</div>
+        <div style="font-size:13px;color:var(--text-muted)">Swagger UI dengan semua endpoint</div>
+      </a>
+      <a href="#" style="padding:16px;background:var(--bg);border-radius:10px;text-decoration:none;color:var(--text);border:1px solid var(--border)">
+        <div style="font-weight:600;margin-bottom:4px">💻 Code Examples</div>
+        <div style="font-size:13px;color:var(--text-muted)">Contoh curl, JS, Python</div>
+      </a>
+      <a href="#" style="padding:16px;background:var(--bg);border-radius:10px;text-decoration:none;color:var(--text);border:1px solid var(--border)">
+        <div style="font-weight:600;margin-bottom:4px">🎮 Enter 3D World</div>
+        <div style="font-size:13px;color:var(--text-muted)">Buka kantor virtual</div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Create Key Modal -->
+<div id="createKeyModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;z-index:100">
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:32px;width:90%;max-width:400px">
+    <h3 style="margin-bottom:16px">Buat API Key Baru</h3>
+    <div class="form-group">
+      <label>Nama Key</label>
+      <input type="text" id="keyName" placeholder="Contoh: Production Key">
+    </div>
+    <div class="form-group">
+      <label>Tier</label>
+      <select id="keyTier" style="width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text)">
+        <option value="free">Free (10 req/min)</option>
+        <option value="pro">Pro (100 req/min)</option>
+      </select>
+    </div>
+    <div id="keyResult" style="display:none;margin:16px 0;padding:12px;background:var(--bg);border-radius:8px;font-family:monospace;font-size:13px;word-break:break-all"></div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn btn-primary" onclick="createKey()" id="btnCreate">Buat</button>
+      <button class="btn" onclick="hideCreateKey()" style="background:var(--bg-hover);color:var(--text)">Batal</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="/portal/js/portal.js"></script>
+<script>
+// Guard
+if (!requireAuth()) throw new Error('Auth required');
+
+// Load user data
+async function loadUser() {
+  var user = await getUser();
+  if (!user) { logout(); return; }
+  
+  document.getElementById('userName').textContent = user.displayName || user.email;
+  document.getElementById('userAvatar').textContent = (user.displayName || user.email)[0].toUpperCase();
+  document.getElementById('userTier').textContent = user.tier || 'free';
+  document.getElementById('statTier').textContent = (user.tier || 'free').charAt(0).toUpperCase() + (user.tier || 'free').slice(1);
+}
+
+// Load usage stats
+async function loadUsage() {
+  var result = await api('/api/v1/user/usage');
+  if (!result.ok) return;
+  
+  var stats = result.data.data;
+  document.getElementById('statCalls').textContent = formatNumber(stats.totalRequests);
+  document.getElementById('statLimit').textContent = stats.monthlyLimit === 0 ? '∞' : formatNumber(stats.monthlyLimit);
+  document.getElementById('statKeys').textContent = stats.activeKeys;
+  
+  if (stats.monthlyLimit > 0) {
+    var pct = Math.min(100, (stats.totalRequests / stats.monthlyLimit) * 100);
+    document.getElementById('usageBar').style.width = pct + '%';
+  } else {
+    document.getElementById('usageBar').style.width = '0%';
+  }
+}
+
+// Load API keys
+async function loadKeys() {
+  var result = await api('/api/v1/user/keys');
+  if (!result.ok) return;
+  
+  var keys = result.data.data;
+  var container = document.getElementById('keyList');
+  
+  if (!keys || keys.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px">Belum ada API key. Buat key pertama Anda di atas.</p>';
+    return;
+  }
+  
+  container.innerHTML = keys.map(function(k) {
+    return '<div class="key-item">' +
+      '<div class="key-info">' +
+        '<div class="key-name">' + (k.name || 'API Key') + '</div>' +
+        '<div class="key-masked">' + k.maskedKey + '</div>' +
+        '<div class="key-meta">' +
+          '<span>' + k.tier + '</span>' +
+          '<span>' + (k.requestCount || 0) + ' calls</span>' +
+          '<span>Dibuat ' + formatDate(k.createdAt) + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="key-actions">' +
+        '<button class="btn-sm btn-danger" onclick="revokeKey(\'' + k.id + '\')">Revoke</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// Create key modal
+function showCreateKey() {
+  document.getElementById('createKeyModal').style.display = 'flex';
+  document.getElementById('keyResult').style.display = 'none';
+  document.getElementById('btnCreate').textContent = 'Buat';
+  document.getElementById('keyName').value = '';
+}
+
+function hideCreateKey() {
+  document.getElementById('createKeyModal').style.display = 'none';
+}
+
+async function createKey() {
+  var name = document.getElementById('keyName').value;
+  var tier = document.getElementById('keyTier').value;
+  
+  var result = await api('/api/v1/user/keys', {
+    method: 'POST',
+    body: JSON.stringify({ name: name, tier: tier })
+  });
+  
+  if (result.ok && result.data.data) {
+    var keyData = result.data.data;
+    var resultDiv = document.getElementById('keyResult');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<div style="color:var(--warning);margin-bottom:8px">⚠️ Copy key ini sekarang — tidak akan ditampilkan lagi!</div>' +
+      '<div style="background:var(--bg);padding:8px;border-radius:4px">' + keyData.key + '</div>';
+    document.getElementById('btnCreate').textContent = 'Selesai';
+    document.getElementById('btnCreate').onclick = function() { hideCreateKey(); loadKeys(); loadUsage(); };
+    showToast('API key berhasil dibuat!');
+  } else {
+    showToast(result.data?.error || 'Gagal membuat key', 'error');
+  }
+}
+
+async function revokeKey(id) {
+  if (!confirm('Yakin ingin revoke key ini? Aplikasi yang menggunakan key ini akan berhenti berfungsi.')) return;
+  
+  var result = await api('/api/v1/user/keys/' + id, { method: 'DELETE' });
+  if (result.ok) {
+    showToast('Key revoked');
+    loadKeys();
+    loadUsage();
+  } else {
+    showToast('Gagal revoke key', 'error');
+  }
+}
+
+// Init
+loadUser();
+loadUsage();
+loadKeys();
+</script>
+</body>
+</html>
